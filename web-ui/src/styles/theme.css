@@ -1,0 +1,107 @@
+/* Apple Design Style Theme Variables */
+
+:root {
+  /* Light Theme (Default) */
+  --bg-primary: #f5f5f7;
+  --bg-secondary: rgba(255, 255, 255, 0.72);
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-sidebar: rgba(255, 255, 255, 0.72);
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary: #6e6e73;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-light: rgba(0, 113, 227, 0.1);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
+  --blur-amount: 20px;
+  
+  /* Gradients for login background - Blue tones with high contrast */
+  --gradient-1: #0f172a;
+  --gradient-2: #1e3a5f;
+  --gradient-3: #0c4a6e;
+  --gradient-4: #164e63;
+  
+  /* Orb colors - vibrant blues with contrast */
+  --orb-1: rgba(59, 130, 246, 0.7);
+  --orb-2: rgba(6, 182, 212, 0.6);
+  --orb-3: rgba(99, 102, 241, 0.7);
+  --orb-4: rgba(14, 165, 233, 0.6);
+  
+  /* Status colors */
+  --success: #34c759;
+  --warning: #ff9500;
+  --error: #ff3b30;
+  --info: #5ac8fa;
+}
+
+[data-theme="dark"] {
+  /* Dark Theme */
+  --bg-primary: #000000;
+  --bg-secondary: rgba(28, 28, 30, 0.72);
+  --bg-card: rgba(44, 44, 46, 0.8);
+  --bg-sidebar: rgba(28, 28, 30, 0.85);
+  --text-primary: #f5f5f7;
+  --text-secondary: #98989d;
+  --text-tertiary: #8e8e93;
+  --accent: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-light: rgba(10, 132, 255, 0.15);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+  
+  /* Gradients for login background - Deep blue/navy */
+  --gradient-1: #020617;
+  --gradient-2: #0c1929;
+  --gradient-3: #0a1628;
+  --gradient-4: #0f172a;
+  
+  /* Orb colors - vibrant neon blues */
+  --orb-1: rgba(56, 189, 248, 0.5);
+  --orb-2: rgba(34, 211, 238, 0.4);
+  --orb-3: rgba(129, 140, 248, 0.5);
+  --orb-4: rgba(96, 165, 250, 0.4);
+  
+  /* Status colors - adjusted for dark */
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --error: #ff453a;
+  --info: #64d2ff;
+}
+
+/* Glassmorphism utility classes */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border: 1px solid var(--border);
+}
+
+.glass-strong {
+  background: var(--bg-secondary);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--border);
+}
+
+/* Smooth transitions for theme switching */
+body,
+.ant-layout,
+.ant-layout-sider,
+.ant-layout-header,
+.ant-layout-content,
+.ant-card,
+.ant-menu,
+.ant-table,
+.ant-modal-content {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}

@@ -1,0 +1,20 @@
+apiVersion: v2
+name: bison
+description: Bison - GPU 资源计费平台，基于 Capsule 多租户 + OpenCost 成本追踪
+type: application
+version: 3.0.0
+appVersion: "3.0.0"
+keywords:
+  - gpu
+  - billing
+  - capsule
+  - opencost
+  - kubernetes
+  - multi-tenant
+  - cost-management
+maintainers:
+  - name: Bison Team
+# Dependencies are installed separately:
+# - Capsule: helm install capsule projectcapsule/capsule -n capsule-system --create-namespace
+# - OpenCost: helm install opencost opencost/opencost -n opencost --create-namespace
+# - Prometheus: helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace

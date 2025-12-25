@@ -1,0 +1,116 @@
+# Default values for bison.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Authentication configuration
+auth:
+  enabled: false                       # Enable login authentication
+  admin:
+    username: admin                   # Admin username
+    password: ""                      # Admin password (not recommended, use existingSecret)
+    existingSecret: ""                # Secret containing 'password' key
+  jwt:
+    secret: ""                        # JWT signing secret (auto-generated if empty)
+    existingSecret: ""                # Secret containing 'jwt-secret' key
+
+# External dependencies
+# Note: Capsule and OpenCost must be installed separately before deploying Bison
+dependencies:
+  # Capsule configuration
+  capsule:
+    # Capsule must be installed separately
+    # helm install capsule projectcapsule/capsule -n capsule-system --create-namespace
+    enabled: true
+  
+  # OpenCost configuration
+  opencost:
+    # OpenCost must be installed separately
+    # helm install opencost opencost/opencost -n opencost --create-namespace
+    enabled: true
+    # OpenCost API URL (internal service URL) - use port 9003 for API, NOT 9090 (UI)
+    apiUrl: "http://opencost.opencost.svc.cluster.local:9003"
+  
+  # Prometheus configuration (for node metrics, required by OpenCost)
+  prometheus:
+    enabled: true
+    # Prometheus server URL (kube-prometheus-stack)
+    url: "http://prometheus-kube-prometheus-prometheus.monitoring:9090"
+
+# API Server configuration
+apiServer:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: bison/api-server
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  ingress:
+    enabled: true
+    className: ""
+    annotations: {}
+    host: bison-api.example.com
+    tls: []
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Web UI configuration
+webUI:
+  enabled: false
+  replicaCount: 2
+  image:
+    repository: bison/web-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: true
+    className: ""
+    annotations: {}
+    host: bison.example.com
+    tls: []
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL

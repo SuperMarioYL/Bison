@@ -1,0 +1,71 @@
+Bison GPU 资源计费平台已部署!
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+=== 架构 ===
+
+基于 Capsule 多租户 + OpenCost 成本追踪
+数据存储在 Kubernetes ConfigMaps 中，无需外部数据库
+
+=== 访问方式 ===
+{{- if .Values.apiServer.enabled }}
+{{- if .Values.apiServer.ingress.enabled }}
+
+API Server: http://{{ .Values.apiServer.ingress.host }}/api/v1
+{{- else }}
+
+API Server:
+  kubectl port-forward svc/{{ include "bison.apiServer.fullname" . }} 8080:{{ .Values.apiServer.service.port }} -n {{ .Release.Namespace }}
+  访问: http://localhost:8080/api/v1
+{{- end }}
+{{- end }}
+{{- if .Values.webUI.enabled }}
+{{- if .Values.webUI.ingress.enabled }}
+
+Web UI: http://{{ .Values.webUI.ingress.host }}
+{{- else }}
+
+Web UI:
+  kubectl port-forward svc/{{ include "bison.webUI.fullname" . }} 3000:{{ .Values.webUI.service.port }} -n {{ .Release.Namespace }}
+  访问: http://localhost:3000
+{{- end }}
+{{- end }}
+
+=== 认证 ===
+
+{{ if .Values.auth.enabled -}}
+已启用认证
+  用户名: {{ .Values.auth.admin.username }}
+  密码: kubectl get secret {{ include "bison.authSecretName" . }} -n {{ .Release.Namespace }} -o jsonpath='{.data.password}' | base64 -d
+{{- else -}}
+认证已禁用
+{{- end }}
+
+=== 依赖组件 ===
+
+OpenCost: {{ if .Values.dependencies.opencost.enabled }}已配置 ({{ .Values.dependencies.opencost.apiUrl }}){{ else }}未配置{{ end }}
+Prometheus: {{ if .Values.dependencies.prometheus.enabled }}已配置 ({{ .Values.dependencies.prometheus.url }}){{ else }}未配置{{ end }}
+
+=== 前置条件 ===
+
+确保已安装以下组件:
+
+1. Capsule (多租户):
+   helm install capsule projectcapsule/capsule -n capsule-system --create-namespace
+
+2. Prometheus:
+   helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+
+3. OpenCost:
+   helm install opencost opencost/opencost -n opencost --create-namespace
+
+=== ConfigMap 数据存储 ===
+
+所有业务数据存储在 {{ .Release.Namespace }} 命名空间的 ConfigMaps 中:
+- bison-billing-config: 计费配置
+- bison-team-balances: 团队余额
+- bison-auto-recharge: 自动充值配置
+- bison-recharge-history: 充值历史
+- bison-audit-logs: 审计日志
+- bison-alert-config: 告警配置

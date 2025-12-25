@@ -1,0 +1,496 @@
+/* Import Inter font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+/* Custom scrollbar - Light theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Custom scrollbar - Dark theme */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Focus styles - exclude Ant Design components */
+:focus-visible:not(.ant-input):not(.ant-btn):not(.ant-select):not([class*="ant-"]) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+.glass-strong {
+  background: var(--bg-secondary);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--border);
+}
+
+/* Card override for Apple style */
+.ant-card {
+  border-radius: 16px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--border-light) !important;
+  padding: 16px 24px !important;
+}
+
+.ant-card-head-title {
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-card-body {
+  padding: 24px !important;
+}
+
+/* Table override */
+.ant-table {
+  background: transparent !important;
+}
+
+.ant-table-thead > tr > th {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--border-light) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--accent-light) !important;
+}
+
+/* Fixed columns need solid background to hide overlapped content */
+.ant-table-cell-fix-left,
+.ant-table-cell-fix-right {
+  background: var(--card-bg, #fff) !important;
+}
+
+.ant-table-thead > tr > th.ant-table-cell-fix-left,
+.ant-table-thead > tr > th.ant-table-cell-fix-right {
+  background: var(--card-bg, #fff) !important;
+}
+
+/* Hover state needs solid color (not transparent accent-light) */
+.ant-table-tbody > tr:hover > .ant-table-cell-fix-left,
+.ant-table-tbody > tr:hover > .ant-table-cell-fix-right {
+  background: #e6f4ff !important;
+}
+
+[data-theme="dark"] .ant-table-tbody > tr:hover > .ant-table-cell-fix-left,
+[data-theme="dark"] .ant-table-tbody > tr:hover > .ant-table-cell-fix-right,
+.dark .ant-table-tbody > tr:hover > .ant-table-cell-fix-left,
+.dark .ant-table-tbody > tr:hover > .ant-table-cell-fix-right {
+  background: #1a2d3d !important;
+}
+
+/* Button override */
+.ant-btn-primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-btn-primary:hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+  transform: translateY(-1px);
+}
+
+.ant-btn-default {
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-btn-default:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* Input containers - these get the visible styling */
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-input-number {
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-primary) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Standalone input (not inside wrapper) */
+input.ant-input:not(.ant-input-affix-wrapper .ant-input):not(.ant-input-number-input),
+textarea.ant-input {
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-primary) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Inner inputs MUST be transparent - high specificity */
+.ant-input-affix-wrapper > input.ant-input,
+.ant-input-affix-wrapper .ant-input,
+.ant-input-number .ant-input-number-input,
+.ant-input-number-input,
+.ant-select .ant-select-selection-search-input,
+.ant-input-group .ant-input,
+.ant-input-group-addon + .ant-input {
+  border: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Input number controls */
+.ant-input-number-handler-wrap {
+  background: transparent !important;
+  border-left: 1px solid var(--border) !important;
+}
+
+/* Hover state for containers only */
+input.ant-input:not(.ant-input-affix-wrapper .ant-input):hover,
+textarea.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select:hover .ant-select-selector,
+.ant-input-number:hover {
+  border-color: var(--accent) !important;
+}
+
+/* Focus state for containers only */
+input.ant-input:not(.ant-input-affix-wrapper .ant-input):focus,
+textarea.ant-input:focus,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-input-number-focused {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-light) !important;
+}
+
+/* Inner inputs should NEVER have focus styles */
+.ant-input-affix-wrapper .ant-input:focus,
+.ant-input-affix-wrapper .ant-input:hover,
+.ant-input-number .ant-input-number-input:focus,
+.ant-input-number .ant-input-number-input:hover {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+}
+
+/* Input addon styling */
+.ant-input-group-addon {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px 0 0 10px !important;
+  color: var(--text-secondary) !important;
+}
+
+.ant-input-group-addon:last-child {
+  border-radius: 0 10px 10px 0 !important;
+}
+
+/* Password input eye icon area - ensure transparent */
+.ant-input-affix-wrapper .ant-input-suffix,
+.ant-input-affix-wrapper .ant-input-prefix {
+  background: transparent !important;
+}
+
+/* InputNumber with prefix/suffix - unified background */
+.ant-input-number-affix-wrapper {
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-primary) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-input-number-affix-wrapper:hover {
+  border-color: var(--accent) !important;
+}
+
+.ant-input-number-affix-wrapper-focused {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-light) !important;
+}
+
+/* Inner elements of InputNumber must be transparent */
+.ant-input-number-affix-wrapper .ant-input-number,
+.ant-input-number-affix-wrapper .ant-input-number-input,
+.ant-input-number-affix-wrapper .ant-input-number-prefix,
+.ant-input-number-affix-wrapper .ant-input-number-suffix,
+.ant-input-number-prefix,
+.ant-input-number-suffix {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* InputNumber inside wrapper should have no border */
+.ant-input-number-affix-wrapper .ant-input-number {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Select dropdown */
+.ant-select-dropdown {
+  border-radius: 10px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.ant-select-item {
+  border-radius: 6px !important;
+}
+
+.ant-select-item-option-active,
+.ant-select-item-option-selected {
+  background: var(--accent-light) !important;
+}
+
+/* Tag override */
+.ant-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+
+/* Modal override */
+.ant-modal-content {
+  border-radius: 20px !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: var(--shadow-lg) !important;
+  overflow: hidden;
+}
+
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  padding: 20px 24px !important;
+}
+
+.ant-modal-title {
+  font-weight: 600 !important;
+  font-size: 18px !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-modal-body {
+  padding: 24px !important;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid var(--border-light) !important;
+  padding: 16px 24px !important;
+}
+
+/* Descriptions override */
+.ant-descriptions-item-label {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+.ant-descriptions-item-content {
+  color: var(--text-primary) !important;
+}
+
+/* Statistic override */
+.ant-statistic-title {
+  color: var(--text-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.ant-statistic-content {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Progress override */
+.ant-progress-text {
+  color: var(--text-primary) !important;
+}
+
+/* Dropdown menu override */
+.ant-dropdown-menu {
+  border-radius: 12px !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 8px !important;
+}
+
+.ant-dropdown-menu-item {
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+}
+
+/* Popconfirm override */
+.ant-popover-inner {
+  border-radius: 12px !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Message override */
+.ant-message-notice-content {
+  border-radius: 12px !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 12px 20px !important;
+}
+
+/* Alert override */
+.ant-alert {
+  border-radius: 12px !important;
+  border: 1px solid var(--border) !important;
+}
+
+/* Tooltip override */
+.ant-tooltip-inner {
+  border-radius: 8px !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: var(--text-primary) !important;
+  font-size: 13px !important;
+}
+
+/* Tabs override */
+.ant-tabs-tab {
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-tabs-tab:hover {
+  color: var(--accent) !important;
+}
+
+.ant-tabs-tab-active {
+  background: var(--accent-light) !important;
+}
+
+/* Spin override */
+.ant-spin-dot-item {
+  background: var(--accent) !important;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

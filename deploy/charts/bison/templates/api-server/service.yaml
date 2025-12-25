@@ -1,0 +1,21 @@
+{{- if .Values.apiServer.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bison.apiServer.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bison.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-server
+spec:
+  type: {{ .Values.apiServer.service.type }}
+  ports:
+    - port: {{ .Values.apiServer.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "bison.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: api-server
+{{- end }}
+

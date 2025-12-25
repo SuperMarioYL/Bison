@@ -1,0 +1,287 @@
+/* BasicLayout - Apple Style with Glassmorphism */
+
+.app-layout {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Sidebar with Glassmorphism */
+.app-sider {
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-sidebar {
+  background: var(--bg-sidebar) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+.sider-header {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.logo-wrapper {
+  width: 40px;
+  height: 40px;
+  background: var(--accent-light);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+/* Menu Styling */
+.app-menu {
+  flex: 1;
+  border-right: none !important;
+  background: transparent !important;
+  padding: 12px 8px;
+  overflow-y: auto;
+}
+
+.app-menu .ant-menu-item,
+.app-menu .ant-menu-submenu-title {
+  height: 44px !important;
+  line-height: 44px !important;
+  margin: 4px 0 !important;
+  padding: 0 16px !important;
+  border-radius: 10px !important;
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  transition: all 0.2s ease !important;
+}
+
+.app-menu .ant-menu-item:hover,
+.app-menu .ant-menu-submenu-title:hover {
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+}
+
+.app-menu .ant-menu-item-selected {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+
+.app-menu .ant-menu-item-selected:hover {
+  background: var(--accent-hover) !important;
+  color: #fff !important;
+}
+
+.app-menu .ant-menu-item .anticon,
+.app-menu .ant-menu-submenu-title .anticon {
+  font-size: 18px !important;
+  margin-right: 12px;
+}
+
+.app-menu .ant-menu-sub {
+  background: transparent !important;
+}
+
+.app-menu .ant-menu-submenu-arrow {
+  color: var(--text-tertiary) !important;
+}
+
+.sider-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.version-text {
+  font-size: 12px;
+  color: var(--text-tertiary) !important;
+}
+
+/* Main Layout */
+.main-layout {
+  margin-left: 240px;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Header with Glassmorphism */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 64px !important;
+  padding: 0 24px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.glass-header {
+  background: var(--bg-secondary) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.theme-toggle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary) !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+}
+
+.theme-toggle-btn .anticon {
+  font-size: 18px;
+}
+
+.user-btn {
+  height: 40px;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  color: var(--text-primary) !important;
+  transition: all 0.2s ease !important;
+}
+
+.user-btn:hover {
+  background: var(--accent-light) !important;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--accent-light);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.username {
+  font-weight: 500;
+  color: var(--text-primary) !important;
+}
+
+/* Content Area */
+.app-content {
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+}
+
+.content-wrapper {
+  min-height: calc(100vh - 112px);
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.glass-content {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Dark theme specific adjustments */
+.app-layout.dark .glass-sidebar {
+  background: rgba(28, 28, 30, 0.85) !important;
+}
+
+.app-layout.dark .glass-header {
+  background: rgba(28, 28, 30, 0.72) !important;
+}
+
+.app-layout.dark .glass-content {
+  background: rgba(44, 44, 46, 0.6) !important;
+}
+
+.app-layout.dark .app-menu .ant-menu-item-selected {
+  background: var(--accent) !important;
+}
+
+/* Scrollbar in sidebar */
+.app-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-menu::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.app-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-sider {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .app-sider.open {
+    transform: translateX(0);
+  }
+
+  .main-layout {
+    margin-left: 0;
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .app-menu .ant-menu-item,
+  .app-menu .ant-menu-submenu-title,
+  .theme-toggle-btn,
+  .user-btn {
+    transition: none !important;
+  }
+}
+
