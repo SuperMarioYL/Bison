@@ -3,25 +3,20 @@
   "go.lintOnSave": "package",
   "go.formatTool": "goimports",
   "go.useLanguageServer": true,
-  
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
-  
   "typescript.preferences.importModuleSpecifier": "relative",
-  
   "files.associations": {
     "*.yaml": "helm",
     "*.tpl": "helm"
   },
-  
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
     "**/vendor": true
   },
-  
   "[go]": {
     "editor.defaultFormatter": "golang.go"
   },
@@ -30,6 +25,17 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "hide-files.files": []
 }
-
