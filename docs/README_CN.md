@@ -55,8 +55,7 @@
 
 ```mermaid
 graph TB
-    subgraph "没有 Bison"
-        style "没有 Bison" fill:#ffebee
+    subgraph WITHOUT["没有 Bison"]
         P1[❌ 手动配额管理<br/>每个命名空间单独配置]
         P2[❌ 表格计费<br/>手动计算和报表]
         P3[❌ 无资源隔离<br/>团队间竞争资源]
@@ -64,8 +63,7 @@ graph TB
         P5[❌ 复杂工具链<br/>需管理多个系统]
     end
 
-    subgraph "使用 Bison"
-        style "使用 Bison" fill:#e8f5e9
+    subgraph WITH["使用 Bison"]
         S1[✅ 自动团队配额<br/>Capsule 驱动的隔离]
         S2[✅ 实时计费<br/>OpenCost 集成]
         S3[✅ 真正的多租户<br/>共享/独占模式]
@@ -79,6 +77,8 @@ graph TB
     P4 -.转变为.-> S4
     P5 -.转变为.-> S5
 
+    style WITHOUT fill:#ffebee
+    style WITH fill:#e8f5e9
     style S1 fill:#4caf50,color:#fff
     style S2 fill:#4caf50,color:#fff
     style S3 fill:#4caf50,color:#fff

@@ -55,8 +55,7 @@ Managing shared GPU clusters across multiple teams creates critical operational 
 
 ```mermaid
 graph TB
-    subgraph "Without Bison"
-        style "Without Bison" fill:#ffebee
+    subgraph WITHOUT["Without Bison"]
         P1[❌ Manual Quota Management<br/>Per-namespace configuration]
         P2[❌ Spreadsheet Billing<br/>Manual calculations & reports]
         P3[❌ No Resource Isolation<br/>Teams compete for resources]
@@ -64,8 +63,7 @@ graph TB
         P5[❌ Complex Tooling<br/>Multiple systems to manage]
     end
 
-    subgraph "With Bison"
-        style "With Bison" fill:#e8f5e9
+    subgraph WITH["With Bison"]
         S1[✅ Automated Team Quotas<br/>Capsule-powered isolation]
         S2[✅ Real-Time Billing<br/>OpenCost integration]
         S3[✅ True Multi-Tenancy<br/>Shared/Exclusive modes]
@@ -79,6 +77,8 @@ graph TB
     P4 -.Transform.-> S4
     P5 -.Transform.-> S5
 
+    style WITHOUT fill:#ffebee
+    style WITH fill:#e8f5e9
     style S1 fill:#4caf50,color:#fff
     style S2 fill:#4caf50,color:#fff
     style S3 fill:#4caf50,color:#fff

@@ -18,6 +18,7 @@ CLAUDE.md
 *.swp
 *.swo
 *~
+__debug*
 
 # OS
 .DS_Store
