@@ -11,8 +11,8 @@ build/
 *.dylib
 
 # IDE
-.idea/
-.vscode/
+#.idea/
+#.vscode/
 .claude/
 CLAUDE.md
 *.swp

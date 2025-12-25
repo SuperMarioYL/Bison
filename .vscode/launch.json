@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API Server",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/api-server/cmd/main.go",
+      "env": {
+        "PORT": "8080",
+        "GIN_MODE": "debug",
+        "AUTH_ENABLED": "true",
+        "ADMIN_USERNAME": "admin",
+        "ADMIN_PASSWORD": "admin123",
+        "OPENCOST_URL": "http://localhost:30009",
+        "PROMETHEUS_URL": "http://localhost:30090",
+        "KUBECONFIG": "${env:HOME}/.kube/config"
+      },
+      "cwd": "${workspaceFolder}/api-server"
+    },
+    {
+      "name": "Web UI",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/web-ui/src",
+      "preLaunchTask": "dev-web"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack",
+      "configurations": [
+        "API Server",
+        "Web UI"
+      ],
+      "stopAll": true
+    }
+  ]
+}
