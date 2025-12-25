@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Full Stack" type="CompoundRunConfigurationType">
-    <toRun name="API Server" type="GoApplicationRunConfiguration" />
-    <toRun name="Web UI (dev)" type="js.build_tools.npm" />
-    <method v="2" />
-  </configuration>
-</component>
-
