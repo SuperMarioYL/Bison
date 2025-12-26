@@ -180,24 +180,24 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "User Layer"
+    subgraph USER_LAYER[User Layer]
         UI[Web UI<br/>React + Ant Design]
         API[REST API<br/>Go + Gin]
     end
 
-    subgraph "Core Services"
+    subgraph CORE[Core Services]
         BS[Billing Service]
         TS[Tenant Service]
         QS[Quota Service]
     end
 
-    subgraph "Kubernetes Layer"
+    subgraph K8S[Kubernetes Layer]
         CA[Capsule<br/>Multi-Tenancy]
         OC[OpenCost<br/>Cost Tracking]
         PR[Prometheus<br/>Metrics]
     end
 
-    subgraph "Data Layer"
+    subgraph DATA[Data Layer]
         CM[ConfigMaps<br/>Zero Database]
     end
 
@@ -433,26 +433,26 @@ Bison integrates seamlessly with the Kubernetes ecosystem, leveraging proven ope
 
 ```mermaid
 graph TB
-    subgraph "Bison Platform"
+    subgraph BISON[Bison Platform]
         style "Bison Platform" fill:#e3f2fd
         BISON_UI[Bison Web UI<br/>React + Ant Design]
         BISON_API[Bison API Server<br/>Go + Gin]
         BISON_SCHED[Billing Scheduler<br/>Hourly Jobs]
     end
 
-    subgraph "Kubernetes Core"
+    subgraph K8S_CORE[Kubernetes Core]
         style "Kubernetes Core" fill:#fff3e0
         K8S_API[Kubernetes API Server]
         ETCD[etcd<br/>ConfigMaps Storage]
     end
 
-    subgraph "Multi-Tenancy Layer"
+    subgraph TENANT[Multi-Tenancy Layer]
         style "Multi-Tenancy Layer" fill:#f3e5f5
         CAPSULE[Capsule Controller]
         TENANT_CRD[Tenant CRDs]
     end
 
-    subgraph "Cost Tracking Stack"
+    subgraph COST[Cost Tracking Stack]
         style "Cost Tracking Stack" fill:#e8f5e9
         OPENCOST[OpenCost]
         PROM[Prometheus]
@@ -460,7 +460,7 @@ graph TB
         KUBE_STATE[kube-state-metrics]
     end
 
-    subgraph "Alerting (Optional)"
+    subgraph ALERT[Alerting (Optional)]
         style "Alerting (Optional)" fill:#fce4ec
         WEBHOOK[Webhook]
         DINGTALK[DingTalk]
@@ -509,8 +509,8 @@ Bison uses **Capsule** to enforce strict resource isolation between teams. Here'
 
 ```mermaid
 graph TB
-    subgraph "Kubernetes Cluster"
-        subgraph "Team A (Exclusive Mode)"
+    subgraph K8S_CLUSTER[Kubernetes Cluster]
+        subgraph TEAM_A[Team A (Exclusive Mode)]
             style "Team A (Exclusive Mode)" fill:#e3f2fd
             T1[Capsule Tenant: team-ml]
             T1_NS1[Namespace: ml-training<br/>ResourceQuota: 10 GPU]
@@ -524,7 +524,7 @@ graph TB
             T1_NS2 --> T1_POD2
         end
 
-        subgraph "Team B (Shared Mode)"
+        subgraph TEAM_B[Team B (Shared Mode)]
             style "Team B (Shared Mode)" fill:#fce4ec
             T2[Capsule Tenant: team-cv]
             T2_NS1[Namespace: cv-research<br/>ResourceQuota: 5 GPU]
@@ -534,7 +534,7 @@ graph TB
             T2_NS1 --> T2_POD1
         end
 
-        subgraph "Node Pools"
+        subgraph NODES[Node Pools]
             style "Node Pools" fill:#f3e5f5
             N1[Node 1<br/>label: bison.io/pool=team-ml<br/>GPUs: 4]
             N2[Node 2<br/>label: bison.io/pool=team-ml<br/>GPUs: 4]

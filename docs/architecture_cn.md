@@ -29,17 +29,17 @@
 
 ```mermaid
 graph TB
-    subgraph "表现层"
+    subgraph PRESENT[表现层]
         WEB[Web UI<br/>React 18 + Ant Design 5]
         CLI[kubectl / API 客户端]
     end
 
-    subgraph "网关层"
+    subgraph GATEWAY[网关层]
         GW[API Server<br/>Go + Gin 框架]
         AUTH[认证中间件<br/>JWT + OIDC]
     end
 
-    subgraph "业务逻辑层"
+    subgraph BUSINESS[业务逻辑层]
         TS[租户服务<br/>团队与项目管理]
         BS[计费服务<br/>成本计算]
         BLS[余额服务<br/>钱包管理]
@@ -48,20 +48,20 @@ graph TB
         RS[报表服务<br/>数据分析]
     end
 
-    subgraph "集成层"
+    subgraph INTEGRATION[集成层]
         K8S[Kubernetes 客户端<br/>client-go]
         OCC[OpenCost 客户端<br/>REST API]
         PC[Prometheus 客户端<br/>PromQL]
     end
 
-    subgraph "外部系统"
+    subgraph EXTERNAL[外部系统]
         KAPI[Kubernetes API]
         CAP[Capsule 控制器]
         OC[OpenCost]
         PROM[Prometheus]
     end
 
-    subgraph "数据层"
+    subgraph DATA[数据层]
         CM[ConfigMaps<br/>持久化存储]
     end
 
@@ -285,27 +285,27 @@ spec:
 
 ```mermaid
 graph LR
-    subgraph "第1层: 表现层"
+    subgraph LAYER1[第1层: 表现层]
         direction TB
         A1[React SPA]
         A2[REST API]
     end
 
-    subgraph "第2层: 应用层"
+    subgraph LAYER2[第2层: 应用层]
         direction TB
         B1[处理器 Handlers]
         B2[服务 Services]
         B3[调度器 Scheduler]
     end
 
-    subgraph "第3层: 领域层"
+    subgraph LAYER3[第3层: 领域层]
         direction TB
         C1[团队领域]
         C2[计费领域]
         C3[告警领域]
     end
 
-    subgraph "第4层: 基础设施层"
+    subgraph LAYER4[第4层: 基础设施层]
         direction TB
         D1[K8s 客户端]
         D2[OpenCost 客户端]
@@ -410,12 +410,12 @@ classDiagram
 
 ```mermaid
 graph TD
-    subgraph "独立服务"
+    subgraph INDEPENDENT[独立服务]
         TS[TenantService<br/>租户服务]
         AS[AlertService<br/>告警服务]
     end
 
-    subgraph "依赖服务"
+    subgraph DEPENDENT[依赖服务]
         BLS[BalanceService<br/>余额服务]
         BS[BillingService<br/>计费服务]
         RS[ReportService<br/>报表服务]
@@ -431,13 +431,13 @@ graph TD
 
 ```mermaid
 graph TB
-    subgraph "React 应用"
-        subgraph "状态管理"
+    subgraph REACT[React 应用]
+        subgraph STATE[状态管理]
             CTX[React Context<br/>全局状态]
             RQ[React Query<br/>服务端状态]
         end
 
-        subgraph "页面组件"
+        subgraph PAGES[页面组件]
             DASH[Dashboard<br/>仪表盘]
             TEAM[TeamManagement<br/>团队管理]
             PROJ[ProjectManagement<br/>项目管理]
@@ -446,14 +446,14 @@ graph TB
             SETTINGS[Settings<br/>系统设置]
         end
 
-        subgraph "公共组件"
+        subgraph COMMON[公共组件]
             LAYOUT[Layout 布局]
             TABLE[ProTable 表格]
             FORM[ProForm 表单]
             CHART[ECharts 图表]
         end
 
-        subgraph "API 服务"
+        subgraph APISERVICE[API 服务]
             API[API Service<br/>Axios 封装]
         end
     end
@@ -793,16 +793,16 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph "Bison"
+    subgraph BISON[Bison]
         TS[租户服务]
     end
 
-    subgraph "Capsule"
+    subgraph CAPSULE[Capsule]
         CTRL[Capsule Controller]
         TEN[Tenant CRD]
     end
 
-    subgraph "Kubernetes"
+    subgraph K8S[Kubernetes]
         NS[Namespaces]
         RQ[ResourceQuotas]
         LR[LimitRanges]
@@ -828,25 +828,25 @@ graph LR
 
 ```mermaid
 graph LR
-    subgraph "Bison"
+    subgraph BISON[Bison]
         CS[成本服务]
         RS[报表服务]
     end
 
-    subgraph "OpenCost"
+    subgraph OPENCOST[OpenCost]
         API[Allocation API<br/>:9003/allocation]
         UI[OpenCost UI<br/>:9090]
     end
 
-    subgraph "Prometheus"
-        PROM[Prometheus Server]
+    subgraph PROM[Prometheus]
+        PROMSVR[Prometheus Server]
         METRICS[容器指标]
     end
 
     CS -->|GET /allocation| API
     RS -->|GET /allocation| API
-    API -->|查询| PROM
-    PROM -->|采集| METRICS
+    API -->|查询| PROMSVR
+    PROMSVR -->|采集| METRICS
 ```
 
 **OpenCost API 使用示例：**
@@ -876,9 +876,8 @@ Bison 通过 **Capsule** 实现真正的多租户,在多个层面强制执行团
 
 ```mermaid
 graph TB
-    subgraph "Kubernetes 集群"
-        subgraph "团队 A: 独占模式"
-            style "团队 A: 独占模式" fill:#e3f2fd
+    subgraph K8S_CLUSTER[Kubernetes 集群]
+        subgraph TEAM_A[团队 A: 独占模式]
             T1[Capsule Tenant: team-ml<br/>模式: exclusive]
             T1_NS1[Namespace: ml-training<br/>配额: 10 GPU, 50 CPU]
             T1_NS2[Namespace: ml-inference<br/>配额: 5 GPU, 20 CPU]
@@ -894,8 +893,7 @@ graph TB
             T1_NS2 --> T1_POD3
         end
 
-        subgraph "团队 B: 共享模式"
-            style "团队 B: 共享模式" fill:#fce4ec
+        subgraph TEAM_B[团队 B: 共享模式]
             T2[Capsule Tenant: team-cv<br/>模式: shared]
             T2_NS1[Namespace: cv-research<br/>配额: 5 GPU, 30 CPU]
             T2_POD1[Pod: detector-job<br/>GPU: 2, CPU: 8]
@@ -904,8 +902,7 @@ graph TB
             T2_NS1 --> T2_POD1
         end
 
-        subgraph "节点池层"
-            style "节点池层" fill:#f3e5f5
+        subgraph NODES[节点池层]
             N1[Node: gpu-node-1<br/>标签: bison.io/pool=team-ml<br/>GPUs: 4, Taints: team-ml:NoSchedule]
             N2[Node: gpu-node-2<br/>标签: bison.io/pool=team-ml<br/>GPUs: 4, Taints: team-ml:NoSchedule]
             N3[Node: gpu-node-3<br/>标签: bison.io/pool=shared<br/>GPUs: 8]
@@ -920,6 +917,9 @@ graph TB
     T2_POD1 -.可调度到.-> N3
     T2_POD1 -.可调度到.-> N4
 
+    style TEAM_A fill:#e3f2fd
+    style TEAM_B fill:#fce4ec
+    style NODES fill:#f3e5f5
     style T1 fill:#2196f3,color:#fff
     style T2 fill:#e91e63,color:#fff
     style N1 fill:#4caf50,color:#fff
@@ -1147,20 +1147,20 @@ kubectl get pods -n ml-training --as=cv-team-lead@company.com
 
 ```mermaid
 graph TB
-    subgraph "bison-system 命名空间"
-        subgraph "API Server"
+    subgraph BISON_NS[bison-system 命名空间]
+        subgraph API[API Server]
             DEP1[Deployment<br/>副本数: 2]
             SVC1[Service<br/>ClusterIP]
             ING1[Ingress]
         end
 
-        subgraph "Web UI"
+        subgraph WEB[Web UI]
             DEP2[Deployment<br/>副本数: 2]
             SVC2[Service<br/>ClusterIP]
             ING2[Ingress]
         end
 
-        subgraph "数据存储"
+        subgraph STORAGE[数据存储]
             CM1[ConfigMap<br/>bison-billing-config]
             CM2[ConfigMap<br/>bison-team-balances]
             CM3[ConfigMap<br/>bison-auto-recharge]
@@ -1168,7 +1168,7 @@ graph TB
             SEC[Secret<br/>bison-auth]
         end
 
-        subgraph "权限控制"
+        subgraph RBAC[权限控制]
             SA[ServiceAccount]
             CR[ClusterRole]
             CRB[ClusterRoleBinding]
@@ -1187,22 +1187,22 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "负载均衡"
+    subgraph LB_LAYER[负载均衡]
         LB[Ingress Controller]
     end
 
-    subgraph "API Server 池"
+    subgraph API_POOL[API Server 池]
         API1[API Pod 1]
         API2[API Pod 2]
         API3[API Pod N]
     end
 
-    subgraph "Web UI 池"
+    subgraph WEB_POOL[Web UI 池]
         WEB1[Web Pod 1]
         WEB2[Web Pod 2]
     end
 
-    subgraph "共享状态"
+    subgraph SHARED_STATE[共享状态]
         CM[ConfigMaps<br/>etcd 存储]
     end
 
@@ -1241,7 +1241,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    subgraph "ClusterRole: bison-api"
+    subgraph CLUSTER_ROLE[ClusterRole: bison-api]
         P1[configmaps: 增删改查]
         P2[namespaces: 增删改查]
         P3[resourcequotas: 增删改查]
@@ -1250,7 +1250,7 @@ graph TD
         P6[nodes: 查看、列表、更新]
     end
 
-    subgraph "作用范围"
+    subgraph SCOPE[作用范围]
         S1[集群级别权限]
     end
 

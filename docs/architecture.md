@@ -29,17 +29,17 @@ This document provides a comprehensive technical overview of Bison's architectur
 
 ```mermaid
 graph TB
-    subgraph "Presentation Layer"
+    subgraph PRESENT[Presentation Layer]
         WEB[Web UI<br/>React 18 + Ant Design 5]
         CLI[kubectl / API Client]
     end
 
-    subgraph "API Gateway Layer"
+    subgraph GATEWAY[API Gateway Layer]
         GW[API Server<br/>Go + Gin Framework]
         AUTH[Auth Middleware<br/>JWT + OIDC]
     end
 
-    subgraph "Business Logic Layer"
+    subgraph BUSINESS[Business Logic Layer]
         TS[Tenant Service<br/>Team & Project CRUD]
         BS[Billing Service<br/>Cost Calculation]
         BLS[Balance Service<br/>Wallet Management]
@@ -48,20 +48,20 @@ graph TB
         RS[Report Service<br/>Analytics]
     end
 
-    subgraph "Integration Layer"
+    subgraph INTEGRATION[Integration Layer]
         K8S[Kubernetes Client<br/>client-go]
         OCC[OpenCost Client<br/>REST API]
         PC[Prometheus Client<br/>PromQL]
     end
 
-    subgraph "External Systems"
+    subgraph EXTERNAL[External Systems]
         KAPI[Kubernetes API]
         CAP[Capsule Controller]
         OC[OpenCost]
         PROM[Prometheus]
     end
 
-    subgraph "Data Layer"
+    subgraph DATA[Data Layer]
         CM[ConfigMaps<br/>Persistent Storage]
     end
 
@@ -285,27 +285,27 @@ spec:
 
 ```mermaid
 graph LR
-    subgraph "Layer 1: Presentation"
+    subgraph LAYER1[Layer 1: Presentation]
         direction TB
         A1[React SPA]
         A2[REST API]
     end
 
-    subgraph "Layer 2: Application"
+    subgraph LAYER2[Layer 2: Application]
         direction TB
         B1[Handlers]
         B2[Services]
         B3[Scheduler]
     end
 
-    subgraph "Layer 3: Domain"
+    subgraph LAYER3[Layer 3: Domain]
         direction TB
         C1[Team Domain]
         C2[Billing Domain]
         C3[Alert Domain]
     end
 
-    subgraph "Layer 4: Infrastructure"
+    subgraph LAYER4[Layer 4: Infrastructure]
         direction TB
         D1[K8s Client]
         D2[OpenCost Client]
@@ -410,12 +410,12 @@ classDiagram
 
 ```mermaid
 graph TD
-    subgraph "Independent Services"
+    subgraph INDEPENDENT[Independent Services]
         TS[TenantService]
         AS[AlertService]
     end
 
-    subgraph "Dependent Services"
+    subgraph DEPENDENT[Dependent Services]
         BLS[BalanceService]
         BS[BillingService]
         RS[ReportService]
@@ -431,13 +431,13 @@ graph TD
 
 ```mermaid
 graph TB
-    subgraph "React Application"
-        subgraph "State Management"
+    subgraph REACT[React Application]
+        subgraph STATE[State Management]
             CTX[React Context]
             RQ[React Query<br/>TanStack]
         end
 
-        subgraph "Pages"
+        subgraph PAGES[Pages]
             DASH[Dashboard]
             TEAM[Team Management]
             PROJ[Project Management]
@@ -446,14 +446,14 @@ graph TB
             SETTINGS[Settings]
         end
 
-        subgraph "Shared Components"
+        subgraph SHARED_COMP[Shared Components]
             LAYOUT[Layout]
             TABLE[ProTable]
             FORM[ProForm]
             CHART[ECharts]
         end
 
-        subgraph "Services"
+        subgraph SERVICES[Services]
             API[API Service<br/>Axios]
         end
     end
@@ -793,16 +793,16 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph "Bison"
+    subgraph BISON[Bison]
         TS[TenantService]
     end
 
-    subgraph "Capsule"
+    subgraph CAPSULE[Capsule]
         CTRL[Capsule Controller]
         TEN[Tenant CRD]
     end
 
-    subgraph "Kubernetes"
+    subgraph K8S[Kubernetes]
         NS[Namespaces]
         RQ[ResourceQuotas]
         LR[LimitRanges]
@@ -828,17 +828,17 @@ graph LR
 
 ```mermaid
 graph LR
-    subgraph "Bison"
+    subgraph BISON2[Bison]
         CS[CostService]
         RS[ReportService]
     end
 
-    subgraph "OpenCost"
+    subgraph OPENCOST[OpenCost]
         API[Allocation API<br/>:9003/allocation]
         UI[OpenCost UI<br/>:9090]
     end
 
-    subgraph "Prometheus"
+    subgraph PROM[Prometheus]
         PROM[Prometheus Server]
         METRICS[Container Metrics]
     end
@@ -876,9 +876,9 @@ Bison achieves true multi-tenancy through **Capsule**, which enforces strict iso
 
 ```mermaid
 graph TB
-    subgraph "Kubernetes Cluster"
-        subgraph "Team A: Exclusive Mode"
-            style "Team A: Exclusive Mode" fill:#e3f2fd
+    subgraph K8S_CLUSTER[Kubernetes Cluster]
+        subgraph TEAM_A[Team A: Exclusive Mode]
+            style TEAM_A fill:#e3f2fd
             T1[Capsule Tenant: team-ml<br/>Mode: exclusive]
             T1_NS1[Namespace: ml-training<br/>Quota: 10 GPU, 50 CPU]
             T1_NS2[Namespace: ml-inference<br/>Quota: 5 GPU, 20 CPU]
@@ -894,8 +894,8 @@ graph TB
             T1_NS2 --> T1_POD3
         end
 
-        subgraph "Team B: Shared Mode"
-            style "Team B: Shared Mode" fill:#fce4ec
+        subgraph TEAM_B[Team B: Shared Mode]
+            style TEAM_B fill:#fce4ec
             T2[Capsule Tenant: team-cv<br/>Mode: shared]
             T2_NS1[Namespace: cv-research<br/>Quota: 5 GPU, 30 CPU]
             T2_POD1[Pod: detector-job<br/>GPU: 2, CPU: 8]
@@ -904,8 +904,8 @@ graph TB
             T2_NS1 --> T2_POD1
         end
 
-        subgraph "Node Pool Layer"
-            style "Node Pool Layer" fill:#f3e5f5
+        subgraph NODES[Node Pool Layer]
+            style NODES fill:#f3e5f5
             N1[Node: gpu-node-1<br/>Label: bison.io/pool=team-ml<br/>GPUs: 4, Taints: team-ml:NoSchedule]
             N2[Node: gpu-node-2<br/>Label: bison.io/pool=team-ml<br/>GPUs: 4, Taints: team-ml:NoSchedule]
             N3[Node: gpu-node-3<br/>Label: bison.io/pool=shared<br/>GPUs: 8]
@@ -1147,20 +1147,20 @@ kubectl get pods -n ml-training --as=cv-team-lead@company.com
 
 ```mermaid
 graph TB
-    subgraph "bison-system namespace"
-        subgraph "API Server"
+    subgraph BISON_NS[bison-system namespace]
+        subgraph API[API Server]
             DEP1[Deployment<br/>replicas: 2]
             SVC1[Service<br/>ClusterIP]
             ING1[Ingress]
         end
 
-        subgraph "Web UI"
+        subgraph WEB[Web UI]
             DEP2[Deployment<br/>replicas: 2]
             SVC2[Service<br/>ClusterIP]
             ING2[Ingress]
         end
 
-        subgraph "Data Storage"
+        subgraph STORAGE[Data Storage]
             CM1[ConfigMap<br/>bison-billing-config]
             CM2[ConfigMap<br/>bison-team-balances]
             CM3[ConfigMap<br/>bison-auto-recharge]
@@ -1168,7 +1168,7 @@ graph TB
             SEC[Secret<br/>bison-auth]
         end
 
-        subgraph "RBAC"
+        subgraph RBAC_SUB[RBAC]
             SA[ServiceAccount]
             CR[ClusterRole]
             CRB[ClusterRoleBinding]
@@ -1187,22 +1187,22 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "Load Balancer"
+    subgraph LB[Load Balancer]
         LB[Ingress Controller]
     end
 
-    subgraph "API Server Pool"
+    subgraph API_POOL[API Server Pool]
         API1[API Pod 1]
         API2[API Pod 2]
         API3[API Pod N]
     end
 
-    subgraph "Web UI Pool"
+    subgraph WEB_POOL[Web UI Pool]
         WEB1[Web Pod 1]
         WEB2[Web Pod 2]
     end
 
-    subgraph "Shared State"
+    subgraph SHARED_STATE[Shared State]
         CM[ConfigMaps<br/>etcd backed]
     end
 
@@ -1241,7 +1241,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    subgraph "ClusterRole: bison-api"
+    subgraph CLUSTER_ROLE[ClusterRole: bison-api]
         P1[configmaps: CRUD]
         P2[namespaces: CRUD]
         P3[resourcequotas: CRUD]
@@ -1250,7 +1250,7 @@ graph TD
         P6[nodes: get, list, patch]
     end
 
-    subgraph "Scope"
+    subgraph SCOPE[Scope]
         S1[Cluster-wide access]
     end
 

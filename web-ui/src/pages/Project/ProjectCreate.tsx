@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Space, Select, Divider } from 'antd';
+import React from 'react';
+import { Form, Input, Button, Card, Typography, message, Space, Select } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createProject, getTeams } from '../../services/api';
-import ResourceQuotaInput from '../../components/ResourceQuotaInput';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -14,7 +13,6 @@ const ProjectCreate: React.FC = () => {
   const [searchParams] = useSearchParams();
   const defaultTeam = searchParams.get('team') || undefined;
   const [form] = Form.useForm();
-  const [quota, setQuota] = useState<Record<string, string>>({});
 
   const { data: teamsData } = useQuery({
     queryKey: ['teams'],
@@ -44,7 +42,6 @@ const ProjectCreate: React.FC = () => {
       team: values.team,
       displayName: values.displayName || values.name,
       description: values.description,
-      quota: Object.keys(quota).length > 0 ? quota : undefined,
     };
 
     createMutation.mutate(project);
@@ -105,17 +102,6 @@ const ProjectCreate: React.FC = () => {
           >
             <TextArea rows={3} placeholder="项目描述..." />
           </Form.Item>
-
-          <Divider>项目配额 (可选)</Divider>
-          <Text type="secondary" style={{ marginBottom: 16, display: 'block' }}>
-            项目配额从团队配额中分配，留空则不限制（受团队配额约束）。资源类型可在系统设置中配置。
-          </Text>
-
-          <ResourceQuotaInput
-            value={quota}
-            onChange={setQuota}
-            showPrice
-          />
 
           <Form.Item style={{ marginTop: 24 }}>
             <Space>

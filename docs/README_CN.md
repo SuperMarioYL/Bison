@@ -180,24 +180,24 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "用户层"
+    subgraph USER_LAYER[用户层]
         UI[Web UI<br/>React + Ant Design]
         API[REST API<br/>Go + Gin]
     end
 
-    subgraph "核心服务"
+    subgraph CORE[核心服务]
         BS[计费服务]
         TS[租户服务]
         QS[配额服务]
     end
 
-    subgraph "Kubernetes 层"
+    subgraph K8S[Kubernetes 层]
         CA[Capsule<br/>多租户]
         OC[OpenCost<br/>成本追踪]
         PR[Prometheus<br/>指标采集]
     end
 
-    subgraph "数据层"
+    subgraph DATA[数据层]
         CM[ConfigMaps<br/>零数据库架构]
     end
 
@@ -433,26 +433,26 @@ Bison 与 Kubernetes 生态系统无缝集成,利用经过验证的开源组件:
 
 ```mermaid
 graph TB
-    subgraph "Bison 平台"
+    subgraph BISON[Bison 平台]
         style "Bison 平台" fill:#e3f2fd
         BISON_UI[Bison Web UI<br/>React + Ant Design]
         BISON_API[Bison API 服务器<br/>Go + Gin]
         BISON_SCHED[计费调度器<br/>每小时任务]
     end
 
-    subgraph "Kubernetes 核心"
+    subgraph K8S_CORE[Kubernetes 核心]
         style "Kubernetes 核心" fill:#fff3e0
         K8S_API[Kubernetes API 服务器]
         ETCD[etcd<br/>ConfigMaps 存储]
     end
 
-    subgraph "多租户层"
+    subgraph TENANT[多租户层]
         style "多租户层" fill:#f3e5f5
         CAPSULE[Capsule 控制器]
         TENANT_CRD[Tenant CRDs]
     end
 
-    subgraph "成本追踪栈"
+    subgraph COST[成本追踪栈]
         style "成本追踪栈" fill:#e8f5e9
         OPENCOST[OpenCost]
         PROM[Prometheus]
@@ -460,7 +460,7 @@ graph TB
         KUBE_STATE[kube-state-metrics]
     end
 
-    subgraph "告警(可选)"
+    subgraph ALERT[告警(可选)]
         style "告警(可选)" fill:#fce4ec
         WEBHOOK[Webhook]
         DINGTALK[钉钉]
@@ -509,8 +509,8 @@ Bison 使用 **Capsule** 在团队间强制执行严格的资源隔离。工作�
 
 ```mermaid
 graph TB
-    subgraph "Kubernetes 集群"
-        subgraph "团队 A (独占模式)"
+    subgraph K8S_CLUSTER[Kubernetes 集群]
+        subgraph TEAM_A[团队 A (独占模式)]
             style "团队 A (独占模式)" fill:#e3f2fd
             T1[Capsule Tenant: team-ml]
             T1_NS1[Namespace: ml-training<br/>ResourceQuota: 10 GPU]
@@ -524,7 +524,7 @@ graph TB
             T1_NS2 --> T1_POD2
         end
 
-        subgraph "团队 B (共享模式)"
+        subgraph TEAM_B[团队 B (共享模式)]
             style "团队 B (共享模式)" fill:#fce4ec
             T2[Capsule Tenant: team-cv]
             T2_NS1[Namespace: cv-research<br/>ResourceQuota: 5 GPU]
@@ -534,7 +534,7 @@ graph TB
             T2_NS1 --> T2_POD1
         end
 
-        subgraph "节点池"
+        subgraph NODES[节点池]
             style "节点池" fill:#f3e5f5
             N1[Node 1<br/>标签: bison.io/pool=team-ml<br/>GPUs: 4]
             N2[Node 2<br/>标签: bison.io/pool=team-ml<br/>GPUs: 4]
