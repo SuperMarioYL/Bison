@@ -1,0 +1,306 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/bison
+
+jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Releasing version: $VERSION"
+
+      - name: Install yq and jq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update Chart.yaml version
+        run: |
+          VERSION=${{ steps.extract_version.outputs.version }}
+          yq eval ".version = \"$VERSION\" | .appVersion = \"$VERSION\"" -i deploy/charts/bison/Chart.yaml
+          echo "Updated Chart.yaml:"
+          cat deploy/charts/bison/Chart.yaml
+
+      - name: Update package.json version
+        run: |
+          VERSION=${{ steps.extract_version.outputs.version }}
+          jq ".version = \"$VERSION\"" web-ui/package.json > tmp.json
+          mv tmp.json web-ui/package.json
+          echo "Updated package.json:"
+          cat web-ui/package.json | grep version
+
+      - name: Upload updated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-files
+          path: |
+            deploy/charts/bison/Chart.yaml
+            web-ui/package.json
+          retention-days: 1
+
+  build-and-push:
+    name: Build and Push ${{ matrix.component }}
+    runs-on: ubuntu-latest
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [api-server, web-ui]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download updated files
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-files
+          path: .
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}/${{ matrix.component }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.component }}
+          file: ./${{ matrix.component }}/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  package-helm:
+    name: Package Helm Chart
+    runs-on: ubuntu-latest
+    needs: [prepare, build-and-push]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download updated files
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-files
+          path: .
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'latest'
+
+      - name: Lint Helm chart
+        run: |
+          helm lint deploy/charts/bison
+
+      - name: Package Helm chart
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          helm package deploy/charts/bison --destination .
+          echo "Packaged chart:"
+          ls -lh bison-${VERSION}.tgz
+
+      - name: Upload Helm chart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: bison-${{ needs.prepare.outputs.version }}.tgz
+          retention-days: 90
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [prepare, package-helm]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Helm chart
+        uses: actions/download-artifact@v4
+        with:
+          name: helm-chart
+          path: .
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          cat <<EOF > release_notes.md
+          ## Bison v${VERSION}
+
+          ### 🚀 Installation
+
+          #### Using Helm Repository (Recommended)
+          \`\`\`bash
+          helm repo add bison https://${{ github.repository_owner }}.github.io/Bison/
+          helm repo update
+          helm install my-bison bison/bison --version ${VERSION}
+          \`\`\`
+
+          #### Using GitHub Release
+          \`\`\`bash
+          wget https://github.com/${{ github.repository }}/releases/download/v${VERSION}/bison-${VERSION}.tgz
+          helm install my-bison bison-${VERSION}.tgz
+          \`\`\`
+
+          ### 🐳 Docker Images
+
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository_owner }}/bison/api-server:${VERSION}
+          docker pull ghcr.io/${{ github.repository_owner }}/bison/web-ui:${VERSION}
+          \`\`\`
+
+          ### 📦 What's Changed
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${VERSION}...v${VERSION}
+
+          ---
+          🤖 Generated with [GitHub Actions](https://github.com/features/actions)
+          EOF
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release v${{ needs.prepare.outputs.version }}
+          body_path: release_notes.md
+          files: |
+            bison-${{ needs.prepare.outputs.version }}.tgz
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-helm-repo:
+    name: Publish to Helm Repository (GitHub Pages)
+    runs-on: ubuntu-latest
+    needs: [prepare, create-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Helm chart
+        uses: actions/download-artifact@v4
+        with:
+          name: helm-chart
+          path: .
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'latest'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Publish to GitHub Pages
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Clone or create gh-pages branch
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            echo "gh-pages branch exists, cloning..."
+            git clone --single-branch --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git gh-pages
+          else
+            echo "gh-pages branch does not exist, creating..."
+            mkdir gh-pages
+            cd gh-pages
+            git init
+            git checkout -b gh-pages
+            git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+            cd ..
+          fi
+
+          # Copy Helm chart to gh-pages
+          cp bison-${VERSION}.tgz gh-pages/
+
+          # Generate or update index.yaml
+          cd gh-pages
+          helm repo index . --url https://${{ github.repository_owner }}.github.io/Bison/
+
+          # Create README if it doesn't exist
+          if [ ! -f README.md ]; then
+            cat <<EOF > README.md
+          # Bison Helm Chart Repository
+
+          ## Usage
+
+          Add the Helm repository:
+
+          \`\`\`bash
+          helm repo add bison https://${{ github.repository_owner }}.github.io/Bison/
+          helm repo update
+          \`\`\`
+
+          Search for available charts:
+
+          \`\`\`bash
+          helm search repo bison
+          \`\`\`
+
+          Install the chart:
+
+          \`\`\`bash
+          helm install my-bison bison/bison --version ${VERSION}
+          \`\`\`
+
+          ## Available Versions
+
+          See [index.yaml](./index.yaml) for all available versions.
+          EOF
+          fi
+
+          # Commit and push
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Release Helm chart v${VERSION}"
+            git push -f origin gh-pages
+            echo "Successfully published Helm chart to GitHub Pages"
+          fi

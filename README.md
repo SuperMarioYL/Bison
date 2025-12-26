@@ -237,10 +237,40 @@ helm install opencost opencost/opencost -n opencost --create-namespace \
 
 ### 2. Deploy Bison
 
+#### Option A: Using Helm Repository (Recommended)
+
 ```bash
-# Clone and deploy
-git clone https://github.com/your-org/bison.git
-cd bison
+# Add Bison Helm repository
+helm repo add bison https://supermarioyl.github.io/Bison/
+helm repo update
+
+# Install Bison
+helm install bison bison/bison \
+  --namespace bison-system \
+  --create-namespace \
+  --set auth.enabled=true \
+  --version 3.0.0
+```
+
+#### Option B: From GitHub Release
+
+```bash
+# Download Helm chart from GitHub Release
+wget https://github.com/SuperMarioYL/Bison/releases/download/v3.0.0/bison-3.0.0.tgz
+
+# Install from downloaded chart
+helm install bison bison-3.0.0.tgz \
+  --namespace bison-system \
+  --create-namespace \
+  --set auth.enabled=true
+```
+
+#### Option C: From Source
+
+```bash
+# Clone and deploy from source
+git clone https://github.com/SuperMarioYL/Bison.git
+cd Bison
 
 helm install bison ./deploy/charts/bison \
   --namespace bison-system \
@@ -678,6 +708,50 @@ Configure pricing through the Web UI or API:
 }
 ```
 
+## Installation Details
+
+### Docker Images
+
+Bison images are available on GitHub Container Registry:
+
+```bash
+# Pull images
+docker pull ghcr.io/supermarioyl/bison/api-server:3.0.0
+docker pull ghcr.io/supermarioyl/bison/web-ui:3.0.0
+
+# Or use latest
+docker pull ghcr.io/supermarioyl/bison/api-server:latest
+docker pull ghcr.io/supermarioyl/bison/web-ui:latest
+```
+
+**Available Tags:**
+- `3.0.0`, `3.0`, `3` - Semantic version tags
+- `latest` - Latest stable release
+
+**Supported Platforms:**
+- `linux/amd64`
+- `linux/arm64`
+
+### Helm Repository
+
+```bash
+# Add repository
+helm repo add bison https://supermarioyl.github.io/Bison/
+
+# Search available versions
+helm search repo bison
+
+# View chart information
+helm show chart bison/bison
+helm show values bison/bison
+
+# Install specific version
+helm install my-bison bison/bison --version 3.0.0
+
+# Upgrade to latest
+helm upgrade my-bison bison/bison
+```
+
 ## Development
 
 ```bash
@@ -697,6 +771,28 @@ make build-binary # Binary files
 make test
 make lint
 ```
+
+### Release Process
+
+Bison uses automated GitHub Actions for releases:
+
+1. **Create a Git tag** to trigger release:
+   ```bash
+   git tag v3.1.0
+   git push origin v3.1.0
+   ```
+
+2. **GitHub Actions automatically**:
+   - Builds multi-platform Docker images
+   - Pushes images to GitHub Container Registry
+   - Packages Helm chart
+   - Creates GitHub Release
+   - Updates Helm repository on GitHub Pages
+
+3. **Verify release**:
+   - Check [GitHub Releases](https://github.com/SuperMarioYL/Bison/releases)
+   - Pull new images: `docker pull ghcr.io/supermarioyl/bison/api-server:3.1.0`
+   - Update Helm repo: `helm repo update && helm search repo bison`
 
 ## Project Structure
 

@@ -44,8 +44,8 @@ apiServer:
   enabled: true
   replicaCount: 2
   image:
-    repository: bison/api-server
-    tag: latest
+    repository: ghcr.io/supermarioyl/bison/api-server
+    tag: 3.0.0
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -72,8 +72,8 @@ webUI:
   enabled: false
   replicaCount: 2
   image:
-    repository: bison/web-ui
-    tag: latest
+    repository: ghcr.io/supermarioyl/bison/web-ui
+    tag: 3.0.0
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
