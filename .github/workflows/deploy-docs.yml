@@ -88,8 +88,12 @@ jobs:
           find . -maxdepth 1 ! -name charts-backup ! -name .git ! -name . ! -name .. -exec rm -rf {} +
 
           # Move Docusaurus build to root
-          mv docs-temp/* .
-          rm -rf docs-temp
+          if [ -d "docs-temp" ] && [ "$(ls -A docs-temp)" ]; then
+            mv docs-temp/* docs-temp/.* . 2>/dev/null || mv docs-temp/* .
+            rm -rf docs-temp
+          else
+            echo "Warning: docs-temp directory is empty or doesn't exist"
+          fi
 
           # Restore charts/ directory
           if [ -d "charts-backup" ]; then
