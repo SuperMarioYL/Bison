@@ -36,13 +36,13 @@ func NewStatsHandler(k8sClient *k8s.Client, tenantSvc *service.TenantService, pr
 
 // Overview represents the dashboard overview
 type Overview struct {
-	TotalNodes    int                       `json:"totalNodes"`
-	TotalTeams    int                       `json:"totalTeams"`
-	TotalProjects int                       `json:"totalProjects"`
-	Resources     []service.ResourceType    `json:"resources"`
-	NodesByArch   []ArchSummary             `json:"nodesByArch"`
-	NodesByStatus map[string]int            `json:"nodesByStatus"`
-	CostEnabled   bool                      `json:"costEnabled"`
+	TotalNodes    int                    `json:"totalNodes"`
+	TotalTeams    int                    `json:"totalTeams"`
+	TotalProjects int                    `json:"totalProjects"`
+	Resources     []service.ResourceType `json:"resources"`
+	NodesByArch   []ArchSummary          `json:"nodesByArch"`
+	NodesByStatus map[string]int         `json:"nodesByStatus"`
+	CostEnabled   bool                   `json:"costEnabled"`
 }
 
 // ArchSummary represents node count by architecture
@@ -53,7 +53,7 @@ type ArchSummary struct {
 
 // QuotaAlert represents an alert for quota usage exceeding threshold
 type QuotaAlert struct {
-	Type         string  `json:"type"`         // "team" or "project"
+	Type         string  `json:"type"` // "team" or "project"
 	Name         string  `json:"name"`
 	DisplayName  string  `json:"displayName,omitempty"`
 	Resource     string  `json:"resource"`
@@ -275,12 +275,12 @@ func (h *StatsHandler) GetTopConsumers(c *gin.Context) {
 	if err == nil && teamReport != nil {
 		for _, item := range teamReport.Data {
 			consumers = append(consumers, TopConsumer{
-				Type:        "team",
-				Name:        item.Name,
-				TotalCost:   item.TotalCost,
-				CPUHours:    item.CPUCoreHours,
-				MemoryGBH:   item.RAMGBHours,
-				GPUHours:    item.GPUHours,
+				Type:      "team",
+				Name:      item.Name,
+				TotalCost: item.TotalCost,
+				CPUHours:  item.CPUCoreHours,
+				MemoryGBH: item.RAMGBHours,
+				GPUHours:  item.GPUHours,
 			})
 		}
 	}
@@ -297,4 +297,3 @@ func (h *StatsHandler) GetTopConsumers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"items": consumers})
 }
-

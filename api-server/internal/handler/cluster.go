@@ -268,7 +268,7 @@ func isNodeReady(node *corev1.Node) bool {
 
 func getNodeResources(node *corev1.Node) []NodeResource {
 	resources := []NodeResource{}
-	
+
 	for name, capacity := range node.Status.Capacity {
 		allocatable := node.Status.Allocatable[name]
 		resources = append(resources, NodeResource{
@@ -277,7 +277,7 @@ func getNodeResources(node *corev1.Node) []NodeResource {
 			Allocatable: allocatable.Value(),
 		})
 	}
-	
+
 	return resources
 }
 
@@ -327,4 +327,3 @@ func getConditions(node *corev1.Node) []NodeCondition {
 	}
 	return conditions
 }
-

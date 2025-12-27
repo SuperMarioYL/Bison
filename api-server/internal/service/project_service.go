@@ -30,9 +30,9 @@ type ProjectMember struct {
 
 // RoleMapping maps project roles to ClusterRoles
 var RoleMapping = map[string]string{
-	"admin": "admin",       // Full control
-	"edit":  "edit",        // Edit most resources, no RBAC
-	"view":  "view",        // Read-only access
+	"admin": "admin", // Full control
+	"edit":  "edit",  // Edit most resources, no RBAC
+	"view":  "view",  // Read-only access
 }
 
 // ProjectService handles project (Namespace) operations
@@ -122,13 +122,13 @@ func (s *ProjectService) Create(ctx context.Context, project *Project) error {
 		}
 		ns.Annotations["bison.io/display-name"] = project.DisplayName
 		ns.Annotations["bison.io/description"] = project.Description
-		
+
 		// Store members in annotations
 		if len(project.Members) > 0 {
 			membersJSON, _ := json.Marshal(project.Members)
 			ns.Annotations["bison.io/members"] = string(membersJSON)
 		}
-		
+
 		// Merge existing labels with our labels
 		for k, v := range labels {
 			ns.Labels[k] = v
@@ -170,7 +170,7 @@ func (s *ProjectService) Update(ctx context.Context, name string, project *Proje
 	}
 	ns.Annotations["bison.io/display-name"] = project.DisplayName
 	ns.Annotations["bison.io/description"] = project.Description
-	
+
 	// Store members in annotations
 	if len(project.Members) > 0 {
 		membersJSON, _ := json.Marshal(project.Members)
@@ -224,13 +224,13 @@ func (s *ProjectService) AddMember(ctx context.Context, projectName string, memb
 	if err != nil {
 		return err
 	}
-	
+
 	if ns.Annotations == nil {
 		ns.Annotations = make(map[string]string)
 	}
 	membersJSON, _ := json.Marshal(project.Members)
 	ns.Annotations["bison.io/members"] = string(membersJSON)
-	
+
 	// Update namespace (including annotations)
 	if err := s.k8sClient.UpdateNamespace(ctx, ns); err != nil {
 		return err
@@ -270,18 +270,18 @@ func (s *ProjectService) RemoveMember(ctx context.Context, projectName string, u
 	if err != nil {
 		return err
 	}
-	
+
 	if ns.Annotations == nil {
 		ns.Annotations = make(map[string]string)
 	}
-	
+
 	if len(project.Members) > 0 {
 		membersJSON, _ := json.Marshal(project.Members)
 		ns.Annotations["bison.io/members"] = string(membersJSON)
 	} else {
 		delete(ns.Annotations, "bison.io/members")
 	}
-	
+
 	// Update namespace (including annotations)
 	if err := s.k8sClient.UpdateNamespace(ctx, ns); err != nil {
 		return err
@@ -321,13 +321,13 @@ func (s *ProjectService) UpdateMemberRole(ctx context.Context, projectName strin
 	if err != nil {
 		return err
 	}
-	
+
 	if ns.Annotations == nil {
 		ns.Annotations = make(map[string]string)
 	}
 	membersJSON, _ := json.Marshal(project.Members)
 	ns.Annotations["bison.io/members"] = string(membersJSON)
-	
+
 	// Update namespace (including annotations)
 	if err := s.k8sClient.UpdateNamespace(ctx, ns); err != nil {
 		return err
@@ -371,21 +371,21 @@ func (s *ProjectService) deleteMemberRoleBinding(ctx context.Context, namespace 
 // getMembersFromAnnotations gets project members from namespace annotations
 func (s *ProjectService) getMembersFromAnnotations(ns *corev1.Namespace) []ProjectMember {
 	var members []ProjectMember
-	
+
 	if ns.Annotations == nil {
 		return members
 	}
-	
+
 	membersJSON := ns.Annotations["bison.io/members"]
 	if membersJSON == "" {
 		return members
 	}
-	
+
 	if err := json.Unmarshal([]byte(membersJSON), &members); err != nil {
 		logger.Warn("Failed to parse members annotation", "namespace", ns.Name, "error", err)
 		return members
 	}
-	
+
 	return members
 }
 

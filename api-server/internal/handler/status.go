@@ -47,4 +47,3 @@ func (h *StatusHandler) GetTaskHistory(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"items": tasks})
 }
-

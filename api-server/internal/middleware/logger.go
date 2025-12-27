@@ -111,4 +111,3 @@ func Recovery() gin.HandlerFunc {
 		c.Next()
 	}
 }
-

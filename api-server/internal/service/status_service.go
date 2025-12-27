@@ -35,11 +35,11 @@ type ServiceStatus struct {
 
 // SystemStatus represents overall system status
 type SystemStatus struct {
-	OpenCost   ServiceStatus     `json:"opencost"`
-	Capsule    ServiceStatus     `json:"capsule"`
-	Prometheus ServiceStatus     `json:"prometheus"`
-	Tasks      []TaskExecution   `json:"tasks"`
-	Statistics SystemStatistics  `json:"statistics"`
+	OpenCost   ServiceStatus    `json:"opencost"`
+	Capsule    ServiceStatus    `json:"capsule"`
+	Prometheus ServiceStatus    `json:"prometheus"`
+	Tasks      []TaskExecution  `json:"tasks"`
+	Statistics SystemStatistics `json:"statistics"`
 }
 
 // SystemStatistics represents system-wide statistics
@@ -202,7 +202,7 @@ func (s *StatusService) getStatistics(ctx context.Context) SystemStatistics {
 	if s.tenantSvc != nil {
 		teams, _ := s.tenantSvc.List(ctx)
 		stats.TotalTeams = len(teams)
-		
+
 		// Count suspended teams
 		for _, team := range teams {
 			if team.Suspended {

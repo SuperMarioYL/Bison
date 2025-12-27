@@ -39,12 +39,12 @@ type ResourcePrice struct {
 
 // Bill represents a team/project/user bill
 type Bill struct {
-	Name        string             `json:"name"`
-	Window      string             `json:"window"`
-	TotalCost   float64            `json:"totalCost"`
+	Name          string             `json:"name"`
+	Window        string             `json:"window"`
+	TotalCost     float64            `json:"totalCost"`
 	ResourceCosts map[string]float64 `json:"resourceCosts"` // Cost breakdown by resource
-	UsageDetails  *UsageData       `json:"usageDetails"`
-	GeneratedAt time.Time          `json:"generatedAt"`
+	UsageDetails  *UsageData         `json:"usageDetails"`
+	GeneratedAt   time.Time          `json:"generatedAt"`
 }
 
 // BillingService handles billing operations
@@ -642,4 +642,3 @@ func (s *BillingService) scaleUpNamespace(ctx context.Context, namespace string)
 
 // Unused import fix
 var _ = appsv1.Deployment{}
-

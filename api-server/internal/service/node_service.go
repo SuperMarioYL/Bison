@@ -31,23 +31,23 @@ const (
 
 // NodeInfo represents detailed node information with Bison status
 type NodeInfo struct {
-	Name          string            `json:"name"`
-	Status        NodeStatus        `json:"status"`
-	Team          string            `json:"team,omitempty"` // Team name if exclusive
-	Labels        map[string]string `json:"labels"`
-	Taints        []corev1.Taint    `json:"taints"`
-	Conditions    []NodeCondition   `json:"conditions"`
-	Capacity      map[string]string `json:"capacity"`
-	Allocatable   map[string]string `json:"allocatable"`
-	Architecture  string            `json:"architecture"`
-	OS            string            `json:"os"`
-	KernelVersion string            `json:"kernelVersion"`
-	Runtime       string            `json:"runtime"`
-	KubeletVersion string           `json:"kubeletVersion"`
-	InternalIP    string            `json:"internalIP"`
-	Hostname      string            `json:"hostname"`
-	PodCount      int               `json:"podCount"`
-	CreationTime  string            `json:"creationTime"`
+	Name           string            `json:"name"`
+	Status         NodeStatus        `json:"status"`
+	Team           string            `json:"team,omitempty"` // Team name if exclusive
+	Labels         map[string]string `json:"labels"`
+	Taints         []corev1.Taint    `json:"taints"`
+	Conditions     []NodeCondition   `json:"conditions"`
+	Capacity       map[string]string `json:"capacity"`
+	Allocatable    map[string]string `json:"allocatable"`
+	Architecture   string            `json:"architecture"`
+	OS             string            `json:"os"`
+	KernelVersion  string            `json:"kernelVersion"`
+	Runtime        string            `json:"runtime"`
+	KubeletVersion string            `json:"kubeletVersion"`
+	InternalIP     string            `json:"internalIP"`
+	Hostname       string            `json:"hostname"`
+	PodCount       int               `json:"podCount"`
+	CreationTime   string            `json:"creationTime"`
 }
 
 // NodeCondition represents a node condition
@@ -83,7 +83,7 @@ func (s *NodeService) ListNodes(ctx context.Context) ([]NodeInfo, error) {
 	var nodeInfos []NodeInfo
 	for _, node := range nodes.Items {
 		info := s.nodeToNodeInfo(&node)
-		
+
 		// Get pod count
 		pods, err := s.k8sClient.ListPodsOnNode(ctx, node.Name)
 		if err == nil {
@@ -286,12 +286,12 @@ func (s *NodeService) GetAvailableNodesForExclusive(ctx context.Context) ([]Node
 // nodeToNodeInfo converts a k8s Node to NodeInfo
 func (s *NodeService) nodeToNodeInfo(node *corev1.Node) NodeInfo {
 	info := NodeInfo{
-		Name:          node.Name,
-		Labels:        node.Labels,
-		Taints:        node.Spec.Taints,
-		Capacity:      make(map[string]string),
-		Allocatable:   make(map[string]string),
-		CreationTime:  node.CreationTimestamp.Format("2006-01-02 15:04:05"),
+		Name:         node.Name,
+		Labels:       node.Labels,
+		Taints:       node.Spec.Taints,
+		Capacity:     make(map[string]string),
+		Allocatable:  make(map[string]string),
+		CreationTime: node.CreationTimestamp.Format("2006-01-02 15:04:05"),
 	}
 
 	// Determine Bison status
@@ -382,4 +382,3 @@ func (s *NodeService) GetNodeStatusSummary(ctx context.Context) (map[NodeStatus]
 
 	return summary, nil
 }
-

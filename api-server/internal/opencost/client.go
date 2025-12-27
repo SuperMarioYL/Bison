@@ -35,28 +35,28 @@ func (c *Client) IsEnabled() bool {
 
 // Allocation represents a cost allocation from OpenCost
 type Allocation struct {
-	Name           string             `json:"name"`
-	Properties     AllocationProps    `json:"properties"`
-	Window         Window             `json:"window"`
-	Start          string             `json:"start"`
-	End            string             `json:"end"`
-	Minutes        float64            `json:"minutes"`
-	CPUCores       float64            `json:"cpuCores"`
-	CPUCoreHours   float64            `json:"cpuCoreHours"`
-	CPUCost        float64            `json:"cpuCost"`
-	GPUCount       float64            `json:"gpuCount"`
-	GPUHours       float64            `json:"gpuHours"`
-	GPUCost        float64            `json:"gpuCost"`
-	RAMBytes       float64            `json:"ramBytes"`
-	RAMByteHours   float64            `json:"ramByteHours"`
-	RAMGBHours     float64            `json:"ramGBHours"`
-	RAMCost        float64            `json:"ramCost"`
-	PVBytes        float64            `json:"pvBytes"`
-	PVByteHours    float64            `json:"pvByteHours"`
-	PVCost         float64            `json:"pvCost"`
-	NetworkCost    float64            `json:"networkCost"`
-	TotalCost      float64            `json:"totalCost"`
-	TotalEfficiency float64           `json:"totalEfficiency"`
+	Name            string          `json:"name"`
+	Properties      AllocationProps `json:"properties"`
+	Window          Window          `json:"window"`
+	Start           string          `json:"start"`
+	End             string          `json:"end"`
+	Minutes         float64         `json:"minutes"`
+	CPUCores        float64         `json:"cpuCores"`
+	CPUCoreHours    float64         `json:"cpuCoreHours"`
+	CPUCost         float64         `json:"cpuCost"`
+	GPUCount        float64         `json:"gpuCount"`
+	GPUHours        float64         `json:"gpuHours"`
+	GPUCost         float64         `json:"gpuCost"`
+	RAMBytes        float64         `json:"ramBytes"`
+	RAMByteHours    float64         `json:"ramByteHours"`
+	RAMGBHours      float64         `json:"ramGBHours"`
+	RAMCost         float64         `json:"ramCost"`
+	PVBytes         float64         `json:"pvBytes"`
+	PVByteHours     float64         `json:"pvByteHours"`
+	PVCost          float64         `json:"pvCost"`
+	NetworkCost     float64         `json:"networkCost"`
+	TotalCost       float64         `json:"totalCost"`
+	TotalEfficiency float64         `json:"totalEfficiency"`
 }
 
 // AllocationProps contains allocation properties
@@ -78,10 +78,10 @@ type Window struct {
 
 // AllocationResponse is the response from OpenCost allocation API
 type AllocationResponse struct {
-	Code    int                       `json:"code"`
-	Status  string                    `json:"status"`
-	Data    []map[string]*Allocation  `json:"data"`
-	Message string                    `json:"message"`
+	Code    int                      `json:"code"`
+	Status  string                   `json:"status"`
+	Data    []map[string]*Allocation `json:"data"`
+	Message string                   `json:"message"`
 }
 
 // GetAllocationByNamespace returns allocations aggregated by namespace
@@ -330,7 +330,7 @@ func (c *Client) GetCostTrend(ctx context.Context, window string) ([]CostTrendPo
 	for i := days - 1; i >= 0; i-- {
 		date := now.AddDate(0, 0, -i)
 		dateStr := date.Format("2006-01-02")
-		
+
 		// Sum cost for this day from all allocations
 		var dayCost float64
 		if i < len(result.Data) {
@@ -340,7 +340,7 @@ func (c *Client) GetCostTrend(ctx context.Context, window string) ([]CostTrendPo
 				}
 			}
 		}
-		
+
 		trend = append(trend, CostTrendPoint{
 			Date:      dateStr,
 			TotalCost: dayCost,
@@ -349,4 +349,3 @@ func (c *Client) GetCostTrend(ctx context.Context, window string) ([]CostTrendPo
 
 	return trend, nil
 }
-

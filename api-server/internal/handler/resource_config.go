@@ -181,4 +181,3 @@ func (h *ResourceConfigHandler) AddResourceConfig(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Resource config added successfully"})
 }
-

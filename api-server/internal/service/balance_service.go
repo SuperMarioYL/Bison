@@ -17,10 +17,10 @@ import (
 
 const (
 	// ConfigMap names
-	BalancesConfigMap       = "bison-team-balances"
+	BalancesConfigMap        = "bison-team-balances"
 	RechargeHistoryConfigMap = "bison-recharge-history"
-	AutoRechargeConfigMap   = "bison-auto-recharge"
-	BisonNamespace          = "bison-system"
+	AutoRechargeConfigMap    = "bison-auto-recharge"
+	BisonNamespace           = "bison-system"
 )
 
 // Balance represents a team's balance
@@ -49,9 +49,9 @@ type RechargeRecord struct {
 type AutoRechargeConfig struct {
 	Enabled       bool      `json:"enabled"`
 	Amount        float64   `json:"amount"`
-	Schedule      string    `json:"schedule"`      // "weekly" or "monthly"
-	DayOfWeek     int       `json:"dayOfWeek"`     // 0-6 for weekly (0=Sunday)
-	DayOfMonth    int       `json:"dayOfMonth"`    // 1-31 for monthly
+	Schedule      string    `json:"schedule"`   // "weekly" or "monthly"
+	DayOfWeek     int       `json:"dayOfWeek"`  // 0-6 for weekly (0=Sunday)
+	DayOfMonth    int       `json:"dayOfMonth"` // 1-31 for monthly
 	NextExecution time.Time `json:"nextExecution"`
 	LastExecuted  time.Time `json:"lastExecuted,omitempty"`
 }
@@ -611,4 +611,3 @@ func (s *BalanceService) CalculateGraceRemaining(overdueAt *time.Time, gracePeri
 	}
 	return fmt.Sprintf("%d小时", hours)
 }
-

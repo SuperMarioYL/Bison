@@ -32,4 +32,3 @@ func (h *ResourceHandler) GetClusterResources(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"items": resources})
 }
-

@@ -25,16 +25,16 @@ const (
 
 // AlertConfig represents alert configuration
 type AlertConfig struct {
-	BalanceThreshold float64          `json:"balanceThreshold"` // Alert when balance below this
-	Channels         []NotifyChannel  `json:"channels"`
+	BalanceThreshold float64         `json:"balanceThreshold"` // Alert when balance below this
+	Channels         []NotifyChannel `json:"channels"`
 }
 
 // NotifyChannel represents a notification channel
 type NotifyChannel struct {
 	ID      string            `json:"id"`
-	Type    string            `json:"type"`    // email, webhook, dingtalk, wechat
+	Type    string            `json:"type"` // email, webhook, dingtalk, wechat
 	Name    string            `json:"name"`
-	Config  map[string]string `json:"config"`  // Channel-specific config
+	Config  map[string]string `json:"config"` // Channel-specific config
 	Enabled bool              `json:"enabled"`
 }
 
@@ -42,7 +42,7 @@ type NotifyChannel struct {
 type Alert struct {
 	ID        string    `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
-	Type      string    `json:"type"`    // low_balance, suspended, etc.
+	Type      string    `json:"type"`     // low_balance, suspended, etc.
 	Severity  string    `json:"severity"` // warning, critical
 	Target    string    `json:"target"`   // Team name
 	Message   string    `json:"message"`
@@ -417,4 +417,3 @@ func (s *AlertService) recordAlert(ctx context.Context, alert *Alert) error {
 
 	return s.k8sClient.UpdateConfigMap(ctx, BisonNamespace, cm)
 }
-

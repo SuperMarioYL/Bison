@@ -177,4 +177,3 @@ func (h *NodeHandler) GetNodeStatusSummary(c *gin.Context) {
 
 	c.JSON(http.StatusOK, summary)
 }
-

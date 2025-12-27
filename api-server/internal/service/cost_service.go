@@ -45,7 +45,7 @@ func NewCostService(opencostURL string, k8sClient *k8s.Client) *CostService {
 
 	client := opencost.NewClient(opencostURL)
 	logger.Info("OpenCost client initialized", "url", opencostURL)
-	
+
 	return &CostService{
 		opencostClient: client,
 		k8sClient:      k8sClient,

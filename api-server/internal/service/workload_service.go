@@ -12,20 +12,20 @@ import (
 type WorkloadSummary struct {
 	Deployments  int `json:"deployments"`
 	StatefulSets int `json:"statefulSets"`
-	Pods         int `json:"pods"`       // Orphan pods (not managed by controllers)
+	Pods         int `json:"pods"` // Orphan pods (not managed by controllers)
 	Jobs         int `json:"jobs"`
 	CronJobs     int `json:"cronJobs"`
-	TotalPods    int `json:"totalPods"`  // Total pods including controller-managed ones
+	TotalPods    int `json:"totalPods"` // Total pods including controller-managed ones
 }
 
 // Workload represents a single workload resource
 type Workload struct {
-	Kind      string    `json:"kind"`      // Deployment, StatefulSet, Pod, Job, CronJob
+	Kind      string    `json:"kind"` // Deployment, StatefulSet, Pod, Job, CronJob
 	Name      string    `json:"name"`
 	Namespace string    `json:"namespace"`
-	Replicas  int32     `json:"replicas"`  // Desired replicas (for scalable resources)
-	Ready     int32     `json:"ready"`     // Ready replicas
-	Status    string    `json:"status"`    // Running, Pending, Failed, Succeeded, etc.
+	Replicas  int32     `json:"replicas"`        // Desired replicas (for scalable resources)
+	Ready     int32     `json:"ready"`           // Ready replicas
+	Status    string    `json:"status"`          // Running, Pending, Failed, Succeeded, etc.
 	Image     string    `json:"image,omitempty"` // Main container image
 	CreatedAt time.Time `json:"createdAt"`
 }
@@ -266,4 +266,3 @@ func boolToInt32(b bool) int32 {
 	}
 	return 0
 }
-

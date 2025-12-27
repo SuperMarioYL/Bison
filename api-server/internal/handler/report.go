@@ -133,4 +133,3 @@ func (h *ReportHandler) ExportSummaryReport(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename=summary-report.csv")
 	c.Data(http.StatusOK, "text/csv", data)
 }
-

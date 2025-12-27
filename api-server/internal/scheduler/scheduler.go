@@ -11,9 +11,9 @@ import (
 
 // Scheduler handles scheduled tasks
 type Scheduler struct {
-	billingSvc  *service.BillingService
-	balanceSvc  *service.BalanceService
-	alertSvc    *service.AlertService
+	billingSvc *service.BillingService
+	balanceSvc *service.BalanceService
+	alertSvc   *service.AlertService
 
 	executions   []service.TaskExecution
 	executionsMu sync.RWMutex

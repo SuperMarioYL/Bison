@@ -251,4 +251,3 @@ func (s *AuditService) getOrCreateConfigMap(ctx context.Context) (*corev1.Config
 
 	return cm, nil
 }
-

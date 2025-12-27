@@ -13,42 +13,42 @@ import (
 
 // Report represents a cost report
 type Report struct {
-	Type        string            `json:"type"`        // team, project, summary
-	Name        string            `json:"name"`        // Entity name
-	Window      string            `json:"window"`
-	GeneratedAt time.Time         `json:"generatedAt"`
-	TotalCost   float64           `json:"totalCost"`
-	CostByDay   []DailyCost       `json:"costByDay,omitempty"`
+	Type           string             `json:"type"` // team, project, summary
+	Name           string             `json:"name"` // Entity name
+	Window         string             `json:"window"`
+	GeneratedAt    time.Time          `json:"generatedAt"`
+	TotalCost      float64            `json:"totalCost"`
+	CostByDay      []DailyCost        `json:"costByDay,omitempty"`
 	CostByResource map[string]float64 `json:"costByResource"`
-	UsageSummary *UsageData       `json:"usageSummary"`
+	UsageSummary   *UsageData         `json:"usageSummary"`
 }
 
 // DailyCost represents cost for a single day
 type DailyCost struct {
-	Date      string  `json:"date"`
-	Cost      float64 `json:"cost"`
-	CPUCost   float64 `json:"cpuCost"`
-	RAMCost   float64 `json:"ramCost"`
-	GPUCost   float64 `json:"gpuCost"`
+	Date    string  `json:"date"`
+	Cost    float64 `json:"cost"`
+	CPUCost float64 `json:"cpuCost"`
+	RAMCost float64 `json:"ramCost"`
+	GPUCost float64 `json:"gpuCost"`
 }
 
 // SummaryReport represents an overall summary report
 type SummaryReport struct {
-	Window       string         `json:"window"`
-	GeneratedAt  time.Time      `json:"generatedAt"`
-	TotalCost    float64        `json:"totalCost"`
-	TotalTeams   int            `json:"totalTeams"`
-	TotalProjects int           `json:"totalProjects"`
-	TopTeams     []TeamCostRank `json:"topTeams"`
-	TopProjects  []ProjectCostRank `json:"topProjects"`
-	CostTrend    []DailyCost    `json:"costTrend"`
+	Window        string            `json:"window"`
+	GeneratedAt   time.Time         `json:"generatedAt"`
+	TotalCost     float64           `json:"totalCost"`
+	TotalTeams    int               `json:"totalTeams"`
+	TotalProjects int               `json:"totalProjects"`
+	TopTeams      []TeamCostRank    `json:"topTeams"`
+	TopProjects   []ProjectCostRank `json:"topProjects"`
+	CostTrend     []DailyCost       `json:"costTrend"`
 }
 
 // TeamCostRank represents a team in cost ranking
 type TeamCostRank struct {
-	Rank      int     `json:"rank"`
-	TeamName  string  `json:"teamName"`
-	Cost      float64 `json:"cost"`
+	Rank       int     `json:"rank"`
+	TeamName   string  `json:"teamName"`
+	Cost       float64 `json:"cost"`
 	Percentage float64 `json:"percentage"`
 }
 
@@ -329,4 +329,3 @@ func sortTeamCostRank(ranks []TeamCostRank) {
 		}
 	}
 }
-

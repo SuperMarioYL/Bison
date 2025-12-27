@@ -24,12 +24,12 @@ const (
 
 // User represents a user in the system
 type User struct {
-	Email       string `json:"email"`                 // Unique identifier
-	DisplayName string `json:"displayName"`           // Display name
-	Source      string `json:"source"`                // "manual" or "oidc"
-	Status      string `json:"status"`                // "active" or "disabled"
-	CreatedAt   string `json:"createdAt"`             // ISO 8601 timestamp
-	LastLogin   string `json:"lastLogin,omitempty"`   // ISO 8601 timestamp
+	Email       string `json:"email"`               // Unique identifier
+	DisplayName string `json:"displayName"`         // Display name
+	Source      string `json:"source"`              // "manual" or "oidc"
+	Status      string `json:"status"`              // "active" or "disabled"
+	CreatedAt   string `json:"createdAt"`           // ISO 8601 timestamp
+	LastLogin   string `json:"lastLogin,omitempty"` // ISO 8601 timestamp
 }
 
 // UserData represents the data stored in ConfigMap
@@ -276,12 +276,12 @@ func (s *UserService) UpdateLastLogin(ctx context.Context, email string) error {
 
 	// User not found - create if OIDC login
 	newUser := User{
-		Email:     email,
+		Email:       email,
 		DisplayName: extractDisplayName(email),
-		Source:    "oidc",
-		Status:    "active",
-		CreatedAt: time.Now().UTC().Format(time.RFC3339),
-		LastLogin: time.Now().UTC().Format(time.RFC3339),
+		Source:      "oidc",
+		Status:      "active",
+		CreatedAt:   time.Now().UTC().Format(time.RFC3339),
+		LastLogin:   time.Now().UTC().Format(time.RFC3339),
 	}
 	userData.Users = append(userData.Users, newUser)
 
