@@ -215,11 +215,20 @@ jobs:
     name: Publish to Helm Repository (GitHub Pages)
     runs-on: ubuntu-latest
     needs: [prepare, create-release]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Download Helm chart
         uses: actions/download-artifact@v4
@@ -232,41 +241,51 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Configure Git
+      - name: Fetch current Pages deployment
+        continue-on-error: true
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Publish to GitHub Pages (charts/ subdirectory)
-        env:
-          VERSION: ${{ needs.prepare.outputs.version }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Clone or create gh-pages branch
+          # Clone gh-pages branch to preserve documentation
           if git ls-remote --exit-code --heads origin gh-pages; then
-            echo "gh-pages branch exists, cloning..."
-            git clone --single-branch --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git gh-pages
-          else
-            echo "gh-pages branch does not exist, creating..."
-            mkdir gh-pages
-            cd gh-pages
-            git init
-            git checkout -b gh-pages
-            git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+            echo "Fetching existing gh-pages branch..."
+            git clone --single-branch --branch gh-pages --depth 1 \
+              https://github.com/${{ github.repository }}.git gh-pages-current
+
+            # Create backup of everything except charts/ and .git
+            mkdir -p docs-backup
+            cd gh-pages-current
+            for item in *; do
+              if [ "$item" != "charts" ] && [ "$item" != ".git" ]; then
+                cp -r "$item" ../docs-backup/
+              fi
+            done
+            # Also copy hidden files (except .git)
+            for item in .[^.]*; do
+              if [ "$item" != ".git" ] && [ -e "$item" ]; then
+                cp -r "$item" ../docs-backup/
+              fi
+            done
             cd ..
+
+            echo "Preserved documentation files"
+          else
+            echo "No existing gh-pages branch, skipping preservation"
           fi
 
-          # Create charts/ directory if it doesn't exist
-          mkdir -p gh-pages/charts
+      - name: Prepare Helm repository
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          # Create deployment directory structure
+          mkdir -p _site/charts
 
-          # Copy Helm chart to gh-pages/charts/
-          cp bison-${VERSION}.tgz gh-pages/charts/
+          # Copy Helm chart
+          cp bison-${VERSION}.tgz _site/charts/
 
-          # Generate or update index.yaml in charts/ directory
-          cd gh-pages/charts
+          # Generate index.yaml in charts/ directory
+          cd _site/charts
           helm repo index . --url https://${{ github.repository_owner }}.github.io/Bison/charts/
 
-          # Create README in charts/ directory if it doesn't exist
+          # Create README.md in charts/ directory if needed
           if [ ! -f README.md ]; then
             cat <<EOF > README.md
           # Bison Helm Chart Repository
@@ -297,20 +316,34 @@ jobs:
           See [index.yaml](./index.yaml) for all available versions.
           EOF
           fi
+          cd ../..
 
-          # Return to gh-pages root
-          cd ..
-
-          # Configure Git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Commit and push
-          git add charts/
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Release Helm chart v${VERSION}"
-            git push origin gh-pages
-            echo "Successfully published Helm chart to GitHub Pages at /charts/"
+      - name: Merge with documentation
+        run: |
+          # Restore documentation if it existed
+          if [ -d "docs-backup" ]; then
+            cp -r docs-backup/* _site/
+            # Also copy hidden files
+            if ls docs-backup/.[^.]* 1> /dev/null 2>&1; then
+              cp -r docs-backup/.[^.]* _site/
+            fi
+            echo "Restored documentation files"
           fi
+
+          # Copy CNAME for custom domain
+          if [ -f "CNAME" ]; then
+            cp CNAME _site/CNAME
+            echo "Added CNAME file"
+          fi
+
+          # Ensure .nojekyll exists
+          touch _site/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
