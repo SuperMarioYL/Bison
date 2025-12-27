@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -19,12 +19,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-docs:
-    name: Build Docusaurus
+  deploy-docs:
+    name: Build and Deploy Documentation
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Fetch current Pages deployment
+        continue-on-error: true
+        run: |
+          # Clone gh-pages branch to preserve charts/
+          if git ls-remote --exit-code --heads origin gh-pages; then
+            echo "Fetching existing gh-pages branch..."
+            git clone --single-branch --branch gh-pages --depth 1 \
+              https://github.com/${{ github.repository }}.git gh-pages-current
+
+            # Preserve charts/ directory if it exists
+            if [ -d "gh-pages-current/charts" ]; then
+              cp -r gh-pages-current/charts charts-backup
+              echo "Preserved charts/ directory"
+            fi
+          else
+            echo "No existing gh-pages branch, skipping preservation"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -43,75 +68,34 @@ jobs:
           cd website
           npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docusaurus-build
-          path: website/build/
-
-  deploy-docs:
-    name: Deploy to GitHub Pages
-    needs: build-docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout gh-pages branch (or create it)
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          fetch-depth: 0
-        continue-on-error: true
-
-      - name: Initialize gh-pages if checkout failed
+      - name: Prepare deployment
         run: |
-          if [ ! -d ".git" ]; then
-            echo "gh-pages branch doesn't exist, creating it..."
-            git init
-            git checkout -b gh-pages
-            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          fi
+          # Create deployment directory
+          mkdir -p _site
 
-      - name: Download docs build
-        uses: actions/download-artifact@v4
-        with:
-          name: docusaurus-build
-          path: docs-temp/
+          # Copy Docusaurus build output
+          cp -r website/build/* _site/
 
-      - name: Preserve Helm charts and deploy docs
-        run: |
-          # Backup existing charts/ directory if it exists
-          if [ -d "charts" ]; then
-            echo "Backing up existing charts/ directory"
-            mv charts charts-backup
-          fi
-
-          # Clear everything except charts-backup and .git
-          find . -maxdepth 1 ! -name charts-backup ! -name .git ! -name . ! -name .. -exec rm -rf {} +
-
-          # Move Docusaurus build to root
-          if [ -d "docs-temp" ] && [ "$(ls -A docs-temp)" ]; then
-            mv docs-temp/* docs-temp/.* . 2>/dev/null || mv docs-temp/* .
-            rm -rf docs-temp
-          else
-            echo "Warning: docs-temp directory is empty or doesn't exist"
-          fi
-
-          # Restore charts/ directory
+          # Restore charts/ if it existed
           if [ -d "charts-backup" ]; then
-            echo "Restoring charts/ directory"
-            mv charts-backup charts
+            cp -r charts-backup _site/charts
+            echo "Restored charts/ directory"
           fi
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit and push
-        run: |
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Deploy documentation from commit ${{ github.sha }}"
-            git push origin gh-pages --force
-          else
-            echo "No changes to commit"
+          # Copy CNAME for custom domain
+          if [ -f "CNAME" ]; then
+            cp CNAME _site/CNAME
+            echo "Added CNAME file"
           fi
+
+          # Ensure .nojekyll exists (should already be in build)
+          touch _site/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
