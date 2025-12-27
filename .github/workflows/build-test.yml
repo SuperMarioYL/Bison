@@ -89,7 +89,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: web-ui
-        run: npm ci
+        run: |
+          npm ci
+          npm install
 
       - name: Run ESLint
         working-directory: web-ui
@@ -111,7 +113,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: web-ui
-        run: npm ci
+        run: |
+          npm ci
+          npm install
 
       - name: Run tests
         working-directory: web-ui
