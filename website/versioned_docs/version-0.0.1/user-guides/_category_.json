@@ -1,0 +1,8 @@
+{
+  "label": "User Guides",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Role-based guides for using Bison effectively."
+  }
+}

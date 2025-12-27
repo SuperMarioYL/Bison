@@ -1,0 +1,106 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    name: Build Docusaurus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd website
+          npm ci
+
+      - name: Build documentation
+        run: |
+          cd website
+          npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docusaurus-build
+          path: website/build/
+
+  deploy-docs:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Download docs build
+        uses: actions/download-artifact@v4
+        with:
+          name: docusaurus-build
+          path: docs-temp/
+
+      - name: Preserve Helm charts and deploy docs
+        run: |
+          # Backup existing charts/ directory if it exists
+          if [ -d "charts" ]; then
+            echo "Backing up existing charts/ directory"
+            mv charts charts-backup
+          fi
+
+          # Clear everything except charts-backup
+          find . -maxdepth 1 ! -name charts-backup ! -name .git ! -name . ! -name .. -exec rm -rf {} +
+
+          # Move Docusaurus build to root
+          mv docs-temp/* .
+          rm -rf docs-temp
+
+          # Restore charts/ directory
+          if [ -d "charts-backup" ]; then
+            echo "Restoring charts/ directory"
+            mv charts-backup charts
+          fi
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push
+        run: |
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy documentation from commit ${{ github.sha }}"
+            git push origin gh-pages
+          else
+            echo "No changes to commit"
+          fi

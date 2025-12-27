@@ -241,7 +241,7 @@ helm install opencost opencost/opencost -n opencost --create-namespace \
 
 ```bash
 # Add Bison Helm repository
-helm repo add bison https://supermarioyl.github.io/Bison/
+helm repo add bison https://supermarioyl.github.io/Bison/charts/
 helm repo update
 
 # Install Bison
@@ -249,17 +249,17 @@ helm install bison bison/bison \
   --namespace bison-system \
   --create-namespace \
   --set auth.enabled=true \
-  --version 3.0.0
+  --version 0.0.1
 ```
 
 #### Option B: From GitHub Release
 
 ```bash
 # Download Helm chart from GitHub Release
-wget https://github.com/SuperMarioYL/Bison/releases/download/v3.0.0/bison-3.0.0.tgz
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.1/bison-0.0.1.tgz
 
 # Install from downloaded chart
-helm install bison bison-3.0.0.tgz \
+helm install bison bison-0.0.1.tgz \
   --namespace bison-system \
   --create-namespace \
   --set auth.enabled=true
@@ -716,8 +716,8 @@ Bison images are available on GitHub Container Registry:
 
 ```bash
 # Pull images
-docker pull ghcr.io/supermarioyl/bison/api-server:3.0.0
-docker pull ghcr.io/supermarioyl/bison/web-ui:3.0.0
+docker pull ghcr.io/supermarioyl/bison/api-server:0.0.1
+docker pull ghcr.io/supermarioyl/bison/web-ui:0.0.1
 
 # Or use latest
 docker pull ghcr.io/supermarioyl/bison/api-server:latest
@@ -725,7 +725,7 @@ docker pull ghcr.io/supermarioyl/bison/web-ui:latest
 ```
 
 **Available Tags:**
-- `3.0.0`, `3.0`, `3` - Semantic version tags
+- `0.0.1`, `3.0`, `3` - Semantic version tags
 - `latest` - Latest stable release
 
 **Supported Platforms:**
@@ -736,7 +736,7 @@ docker pull ghcr.io/supermarioyl/bison/web-ui:latest
 
 ```bash
 # Add repository
-helm repo add bison https://supermarioyl.github.io/Bison/
+helm repo add bison https://supermarioyl.github.io/Bison/charts/
 
 # Search available versions
 helm search repo bison
@@ -746,7 +746,7 @@ helm show chart bison/bison
 helm show values bison/bison
 
 # Install specific version
-helm install my-bison bison/bison --version 3.0.0
+helm install my-bison bison/bison --version 0.0.1
 
 # Upgrade to latest
 helm upgrade my-bison bison/bison

@@ -66,6 +66,34 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "dev-docs",
+      "type": "npm",
+      "script": "start",
+      "path": "website",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "docusaurus",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^(.*)$",
+          "file": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Starting the development server",
+          "endsPattern": "(Compiled successfully|webpack compiled|Local:|http://localhost:3001)"
+        }
+      }
+    },
+    {
+      "label": "build-docs",
+      "type": "npm",
+      "script": "build",
+      "path": "website",
+      "group": "build",
+      "problemMatcher": []
     }
   ]
 }

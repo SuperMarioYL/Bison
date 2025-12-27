@@ -22,8 +22,15 @@ help: ## 显示帮助
 	@echo "本地开发:"
 	@echo "  dev-api          本地运行 API 服务器"
 	@echo "  dev-web          本地运行 Web UI"
+	@echo "  dev-docs         本地运行文档站点 (http://localhost:3001)"
 	@echo "  dev              同时运行 API 和 Web (需要 tmux)"
 	@echo "  install-deps     安装开发依赖"
+	@echo ""
+	@echo "文档:"
+	@echo "  dev-docs         本地运行文档站点开发服务器"
+	@echo "  build-docs       构建生产版本文档"
+	@echo "  serve-docs       本地预览构建后的文档"
+	@echo "  clean-docs       清理文档构建产物"
 	@echo ""
 	@echo "测试和检查:"
 	@echo "  test             运行所有测试"
@@ -79,10 +86,36 @@ dev: ## 同时运行 API 和 Web (需要 tmux)
 install-deps: ## 安装开发依赖
 	cd api-server && go mod download
 	cd web-ui && npm install
+	cd website && npm install
 
 .PHONY: tidy
 tidy: ## 整理 Go 依赖
 	cd api-server && go mod tidy
+
+# ==================== 文档 ====================
+
+.PHONY: dev-docs
+dev-docs: ## 本地运行文档站点开发服务器
+	@echo "Starting Docusaurus development server..."
+	@echo "访问: http://localhost:3001"
+	cd website && npm run start
+
+.PHONY: build-docs
+build-docs: ## 构建生产版本文档
+	@echo "Building Docusaurus site for production..."
+	cd website && npm run build
+	@echo "Build complete! Files in website/build/"
+
+.PHONY: serve-docs
+serve-docs: ## 本地预览构建后的文档
+	@echo "Serving built documentation..."
+	@echo "访问: http://localhost:3001"
+	cd website && npm run serve
+
+.PHONY: clean-docs
+clean-docs: ## 清理文档构建产物
+	rm -rf website/build
+	rm -rf website/.docusaurus
 
 # ==================== 测试和检查 ====================
 
@@ -324,11 +357,14 @@ show-balances: ## 显示团队余额
 clean: ## 清理构建产物
 	rm -rf $(DIST_DIR)
 	rm -rf web-ui/dist
+	rm -rf website/build
+	rm -rf website/.docusaurus
 	rm -f *.tgz
 
 .PHONY: clean-all
 clean-all: clean ## 清理所有 (包括 node_modules 和 Docker)
 	rm -rf web-ui/node_modules
+	rm -rf website/node_modules
 	docker rmi $(API_IMAGE) || true
 	docker rmi $(WEB_IMAGE) || true
 	docker buildx rm bison-builder || true

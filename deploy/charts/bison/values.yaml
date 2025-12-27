@@ -45,7 +45,7 @@ apiServer:
   replicaCount: 2
   image:
     repository: ghcr.io/supermarioyl/bison/api-server
-    tag: 3.0.0
+    tag: 0.0.1
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -73,7 +73,7 @@ webUI:
   replicaCount: 2
   image:
     repository: ghcr.io/supermarioyl/bison/web-ui
-    tag: 3.0.0
+    tag: 0.0.1
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP

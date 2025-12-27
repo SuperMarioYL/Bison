@@ -26,6 +26,18 @@
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/web-ui/src",
       "preLaunchTask": "dev-web"
+    },
+    {
+      "name": "Documentation",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3001/Bison",
+      "webRoot": "${workspaceFolder}/website",
+      "preLaunchTask": "dev-docs",
+      "presentation": {
+        "group": "docs",
+        "order": 1
+      }
     }
   ],
   "compounds": [

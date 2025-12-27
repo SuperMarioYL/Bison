@@ -237,7 +237,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Publish to GitHub Pages
+      - name: Publish to GitHub Pages (charts/ subdirectory)
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -256,14 +256,17 @@ jobs:
             cd ..
           fi
 
-          # Copy Helm chart to gh-pages
-          cp bison-${VERSION}.tgz gh-pages/
+          # Create charts/ directory if it doesn't exist
+          mkdir -p gh-pages/charts
 
-          # Generate or update index.yaml
-          cd gh-pages
-          helm repo index . --url https://${{ github.repository_owner }}.github.io/Bison/
+          # Copy Helm chart to gh-pages/charts/
+          cp bison-${VERSION}.tgz gh-pages/charts/
 
-          # Create README if it doesn't exist
+          # Generate or update index.yaml in charts/ directory
+          cd gh-pages/charts
+          helm repo index . --url https://${{ github.repository_owner }}.github.io/Bison/charts/
+
+          # Create README in charts/ directory if it doesn't exist
           if [ ! -f README.md ]; then
             cat <<EOF > README.md
           # Bison Helm Chart Repository
@@ -273,7 +276,7 @@ jobs:
           Add the Helm repository:
 
           \`\`\`bash
-          helm repo add bison https://${{ github.repository_owner }}.github.io/Bison/
+          helm repo add bison https://${{ github.repository_owner }}.github.io/Bison/charts/
           helm repo update
           \`\`\`
 
@@ -295,12 +298,19 @@ jobs:
           EOF
           fi
 
+          # Return to gh-pages root
+          cd ..
+
+          # Configure Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           # Commit and push
-          git add .
+          git add charts/
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Release Helm chart v${VERSION}"
-            git push -f origin gh-pages
-            echo "Successfully published Helm chart to GitHub Pages"
+            git push origin gh-pages
+            echo "Successfully published Helm chart to GitHub Pages at /charts/"
           fi

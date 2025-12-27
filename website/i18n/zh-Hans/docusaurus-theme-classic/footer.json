@@ -1,0 +1,42 @@
+{
+  "link.title.Docs": {
+    "message": "Docs",
+    "description": "The title of the footer links column with title=Docs in the footer"
+  },
+  "link.title.Resources": {
+    "message": "Resources",
+    "description": "The title of the footer links column with title=Resources in the footer"
+  },
+  "link.title.More": {
+    "message": "More",
+    "description": "The title of the footer links column with title=More in the footer"
+  },
+  "link.item.label.Getting Started": {
+    "message": "Getting Started",
+    "description": "The label of footer link with label=Getting Started linking to /docs/intro"
+  },
+  "link.item.label.Architecture": {
+    "message": "Architecture",
+    "description": "The label of footer link with label=Architecture linking to /docs/architecture"
+  },
+  "link.item.label.Helm Charts": {
+    "message": "Helm Charts",
+    "description": "The label of footer link with label=Helm Charts linking to https://supermarioyl.github.io/Bison/charts/"
+  },
+  "link.item.label.GitHub Releases": {
+    "message": "GitHub Releases",
+    "description": "The label of footer link with label=GitHub Releases linking to https://github.com/SuperMarioYL/Bison/releases"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/SuperMarioYL/Bison"
+  },
+  "link.item.label.Issues": {
+    "message": "Issues",
+    "description": "The label of footer link with label=Issues linking to https://github.com/SuperMarioYL/Bison/issues"
+  },
+  "copyright": {
+    "message": "Copyright © 2025 Bison Project. Built with Docusaurus.",
+    "description": "The footer copyright"
+  }
+}

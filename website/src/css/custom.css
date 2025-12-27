@@ -1,0 +1,129 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  /* Big Sur Blue Color Scheme */
+  --ifm-color-primary: #0A84FF;
+  --ifm-color-primary-dark: #0077ED;
+  --ifm-color-primary-darker: #006EDB;
+  --ifm-color-primary-darkest: #005BB8;
+  --ifm-color-primary-light: #3D9DFF;
+  --ifm-color-primary-lighter: #5AADFF;
+  --ifm-color-primary-lightest: #7ABDFF;
+
+  /* Apple-style Typography */
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(10, 132, 255, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  /* Big Sur Blue - More vibrant in dark mode */
+  --ifm-color-primary: #0A84FF;
+  --ifm-color-primary-dark: #0077ED;
+  --ifm-color-primary-darker: #006EDB;
+  --ifm-color-primary-darkest: #005BB8;
+  --ifm-color-primary-light: #3D9DFF;
+  --ifm-color-primary-lighter: #5AADFF;
+  --ifm-color-primary-lightest: #7ABDFF;
+  --docusaurus-highlighted-code-line-bg: rgba(10, 132, 255, 0.2);
+}
+
+/* ==================== Apple-Style Visual Effects ==================== */
+
+/* Frosted Glass Navbar */
+.navbar {
+  backdrop-filter: saturate(180%) blur(20px);
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .navbar {
+  background-color: rgba(30, 30, 30, 0.72) !important;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.05);
+}
+
+/* Smooth Transitions - Apple's signature ease-out curve */
+a,
+button,
+.card,
+.navbar__link,
+.menu__link,
+.pagination-nav__link {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover Effects */
+a:hover,
+.navbar__link:hover,
+.menu__link:hover {
+  transform: translateY(-1px);
+}
+
+button:hover,
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+}
+
+/* Rounded Corners & Layered Shadows */
+.card,
+.markdown > img,
+.theme-doc-sidebar-container,
+.pagination-nav__link {
+  border-radius: 12px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.hero {
+  border-radius: 16px;
+}
+
+/* Code Blocks - Apple-style rounded corners */
+.theme-code-block,
+pre,
+code {
+  border-radius: 8px;
+}
+
+/* Footer styling */
+.footer {
+  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 249, 249, 0.95) 100%);
+}
+
+[data-theme='dark'] .footer {
+  border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.95) 100%);
+}
+
+/* Table of Contents - Frosted effect */
+.table-of-contents {
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+[data-theme='dark'] .table-of-contents {
+  background-color: rgba(30, 30, 30, 0.5);
+}
+
+/* Enhanced Focus States - Accessibility */
+a:focus,
+button:focus,
+.navbar__link:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
