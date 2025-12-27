@@ -12,11 +12,11 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { 
-  getOverview, 
-  getTeamUsage, 
-  getProjectUsage,
-  getEnabledResourceConfigs, 
+import {
+  getOverview,
+  getTeamUsage,
+  getProjectsUsageReport,
+  getEnabledResourceConfigs,
   getQuotaAlerts,
   getCostTrend,
   getTopConsumers,
@@ -142,7 +142,7 @@ const Dashboard: React.FC = () => {
 
   const { data: projectUsage, isLoading: projectUsageLoading } = useQuery({
     queryKey: ['projectUsage', '7d'],
-    queryFn: () => getProjectUsage('7d').then(res => res.data),
+    queryFn: () => getProjectsUsageReport('7d').then(res => res.data),
     refetchInterval: 60000,
   });
 

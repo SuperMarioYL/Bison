@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Table, Card, Button, Tag, Space, Typography, message, Popconfirm, Empty, Spin, Select, Tooltip, Progress } from 'antd';
+import { Table, Card, Button, Tag, Space, Typography, message, Popconfirm, Empty, Spin, Select, Tooltip } from 'antd';
 import { PlusOutlined, ProjectOutlined, EditOutlined, DeleteOutlined, DeploymentUnitOutlined } from '@ant-design/icons';
 import { useQuery, useQueryClient, useMutation, useQueries } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
