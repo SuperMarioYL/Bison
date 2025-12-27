@@ -53,15 +53,22 @@ jobs:
     name: Deploy to GitHub Pages
     needs: build-docs
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout code
+      - name: Checkout gh-pages branch (or create it)
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           fetch-depth: 0
+        continue-on-error: true
+
+      - name: Initialize gh-pages if checkout failed
+        run: |
+          if [ ! -d ".git" ]; then
+            echo "gh-pages branch doesn't exist, creating it..."
+            git init
+            git checkout -b gh-pages
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          fi
 
       - name: Download docs build
         uses: actions/download-artifact@v4
@@ -77,7 +84,7 @@ jobs:
             mv charts charts-backup
           fi
 
-          # Clear everything except charts-backup
+          # Clear everything except charts-backup and .git
           find . -maxdepth 1 ! -name charts-backup ! -name .git ! -name . ! -name .. -exec rm -rf {} +
 
           # Move Docusaurus build to root
@@ -100,7 +107,7 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "Deploy documentation from commit ${{ github.sha }}"
-            git push origin gh-pages
+            git push origin gh-pages --force
           else
             echo "No changes to commit"
           fi
