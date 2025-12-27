@@ -330,12 +330,6 @@ jobs:
             echo "Restored documentation files"
           fi
 
-          # Copy CNAME for custom domain
-          if [ -f "CNAME" ]; then
-            cp CNAME _site/CNAME
-            echo "Added CNAME file"
-          fi
-
           # Ensure .nojekyll exists
           touch _site/.nojekyll
 

@@ -82,12 +82,6 @@ jobs:
             echo "Restored charts/ directory"
           fi
 
-          # Copy CNAME for custom domain
-          if [ -f "CNAME" ]; then
-            cp CNAME _site/CNAME
-            echo "Added CNAME file"
-          fi
-
           # Ensure .nojekyll exists (should already be in build)
           touch _site/.nojekyll
 
