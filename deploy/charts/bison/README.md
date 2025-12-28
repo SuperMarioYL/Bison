@@ -2,6 +2,12 @@
 
 Kubernetes-based GPU Resource Billing and Scheduling Platform
 
+## ⚠️ 重要提示 / Important Notice
+
+**这是一个 Helm Chart，请使用 `helm` 命令安装，而不是 `docker pull`！**
+
+**This is a Helm Chart. Use `helm` command to install, NOT `docker pull`!**
+
 ## Installation
 
 **Requirements:**
@@ -14,15 +20,15 @@ Install directly from GitHub Container Registry using OCI format:
 
 ```bash
 # Install specific version
-helm install my-bison oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
+helm install my-bison oci://ghcr.io/supermarioyl/charts/bison --version 0.0.9
 
 # Or pull first, then install
-helm pull oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
-helm install my-bison bison-0.0.2.tgz
+helm pull oci://ghcr.io/supermarioyl/charts/bison --version 0.0.9
+helm install my-bison bison-0.0.9.tgz
 
 # With custom configuration
-helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
-  --version 0.0.2 \
+helm install my-bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.9 \
   --namespace bison-system \
   --create-namespace \
   --set opencost.url=http://opencost.opencost-system.svc:9003 \
@@ -31,7 +37,7 @@ helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
 
 **Why GHCR OCI Format?**
 - ✅ No separate Helm repository needed
-- ✅ Unified with Docker images in GHCR
+- ✅ Unified storage with Docker images in GHCR
 - ✅ Faster installation
 - ✅ Modern Helm 3.8+ standard
 
@@ -41,10 +47,10 @@ Download the chart from [GitHub Releases](https://github.com/SuperMarioYL/Bison/
 
 ```bash
 # Download from release page
-wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.2/bison-0.0.2.tgz
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.9/bison-0.0.9.tgz
 
 # Install
-helm install my-bison bison-0.0.2.tgz \
+helm install my-bison bison-0.0.9.tgz \
   --namespace bison-system \
   --create-namespace
 ```
@@ -75,7 +81,7 @@ See [values.yaml](./values.yaml) for all configuration options.
 ### Basic Configuration
 
 ```bash
-helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
+helm install my-bison oci://ghcr.io/supermarioyl/charts/bison \
   --set apiServer.replicas=2 \
   --set webUI.replicas=2
 ```
@@ -83,11 +89,11 @@ helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
 ## Uninstall
 
 ```bash
-helm uninstall my-bison
+helm uninstall my-bison -n bison-system
 ```
 
 ## More Information
 
-- [Project Homepage](https://supermarioyl.github.io/Bison/)
-- [Documentation](https://supermarioyl.github.io/Bison/docs/)
+- [Project Homepage](https://bison.lei6393.com)
+- [Documentation](https://bison.lei6393.com/docs/)
 - [GitHub Repository](https://github.com/SuperMarioYL/Bison)
