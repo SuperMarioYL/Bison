@@ -30,24 +30,6 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Fetch current Pages deployment
-        continue-on-error: true
-        run: |
-          # Clone gh-pages branch to preserve charts/
-          if git ls-remote --exit-code --heads origin gh-pages; then
-            echo "Fetching existing gh-pages branch..."
-            git clone --single-branch --branch gh-pages --depth 1 \
-              https://github.com/${{ github.repository }}.git gh-pages-current
-
-            # Preserve charts/ directory if it exists
-            if [ -d "gh-pages-current/charts" ]; then
-              cp -r gh-pages-current/charts charts-backup
-              echo "Preserved charts/ directory"
-            fi
-          else
-            echo "No existing gh-pages branch, skipping preservation"
-          fi
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -72,12 +54,6 @@ jobs:
 
           # Copy Docusaurus build output
           cp -r website/build/* _site/
-
-          # Restore charts/ if it existed
-          if [ -d "charts-backup" ]; then
-            cp -r charts-backup _site/charts
-            echo "Restored charts/ directory"
-          fi
 
           # Ensure .nojekyll exists (should already be in build)
           touch _site/.nojekyll
