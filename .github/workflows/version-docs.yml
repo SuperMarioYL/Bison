@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - name: Extract version from tag
         id: version
@@ -93,10 +94,10 @@ jobs:
           - Created versioned_docs/version-${VERSION}/
           - Created versioned_sidebars/version-${VERSION}-sidebars.json"
 
-          git push origin main
+          git push origin HEAD:main
 
           echo "✅ Changes pushed to main branch"
-          echo "📚 Documentation will be available at: https://supermarioyl.github.io/Bison/docs/${VERSION}/"
+          echo "📚 Documentation will be available at: https://bison.lei6393.com/docs/${VERSION}/"
 
       - name: Summary
         run: |
@@ -114,5 +115,5 @@ jobs:
           else
             echo "✅ **Status**: Documentation version created successfully" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "📚 **View Documentation**: [https://supermarioyl.github.io/Bison/docs/${VERSION}/](https://supermarioyl.github.io/Bison/docs/${VERSION}/)" >> $GITHUB_STEP_SUMMARY
+            echo "📚 **View Documentation**: [https://bison.lei6393.com/docs/${VERSION}/](https://bison.lei6393.com/docs/${VERSION}/)" >> $GITHUB_STEP_SUMMARY
           fi
