@@ -1,0 +1,136 @@
+name: Cleanup Documentation Version
+
+on:
+  release:
+    types: [deleted]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-versioning
+  cancel-in-progress: false
+
+jobs:
+  remove-version:
+    name: Remove Documentation Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Extract version from tag (v0.0.3 -> 0.0.3)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Removing documentation version: $VERSION"
+
+      - name: Check if version exists
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if grep -q "\"${VERSION}\"" website/versions.json; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Version ${VERSION} found in versions.json"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️  Version ${VERSION} not found, nothing to remove"
+          fi
+
+      - name: Install jq
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Remove version from versions.json
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          echo "Current versions.json:"
+          cat website/versions.json
+
+          # Remove version from array using jq
+          jq --arg ver "${VERSION}" 'del(.[] | select(. == $ver))' website/versions.json > website/versions.json.tmp
+          mv website/versions.json.tmp website/versions.json
+
+          echo ""
+          echo "Updated versions.json:"
+          cat website/versions.json
+
+      - name: Remove versioned directories
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          # Remove versioned documentation directory
+          if [ -d "website/versioned_docs/version-${VERSION}" ]; then
+            rm -rf "website/versioned_docs/version-${VERSION}"
+            echo "✅ Removed versioned_docs/version-${VERSION}/"
+          fi
+
+          # Remove versioned sidebars file
+          if [ -f "website/versioned_sidebars/version-${VERSION}-sidebars.json" ]; then
+            rm -f "website/versioned_sidebars/version-${VERSION}-sidebars.json"
+            echo "✅ Removed versioned_sidebars/version-${VERSION}-sidebars.json"
+          fi
+
+          echo ""
+          echo "Files removed:"
+          git status --short
+
+      - name: Configure Git
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          git add website/versions.json
+          git add website/versioned_docs/
+          git add website/versioned_sidebars/
+
+          git commit -m "docs: remove version ${VERSION} [skip ci]
+
+          Auto-cleanup documentation version after release deletion ${GITHUB_REF}
+
+          - Removed version ${VERSION} from versions.json
+          - Deleted versioned_docs/version-${VERSION}/
+          - Deleted versioned_sidebars/version-${VERSION}-sidebars.json"
+
+          git push origin main
+
+          echo "✅ Changes pushed to main branch"
+          echo "📚 Documentation version ${VERSION} has been removed"
+
+      - name: Summary
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          EXISTS=${{ steps.check.outputs.exists }}
+
+          echo "## Documentation Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release**: ${GITHUB_REF}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$EXISTS" == "true" ]; then
+            echo "✅ **Status**: Documentation version removed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Removed files**:" >> $GITHUB_STEP_SUMMARY
+            echo "- \`versions.json\` (updated)" >> $GITHUB_STEP_SUMMARY
+            echo "- \`versioned_docs/version-${VERSION}/\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`versioned_sidebars/version-${VERSION}-sidebars.json\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️  **Status**: Version not found, nothing to remove" >> $GITHUB_STEP_SUMMARY
+          fi

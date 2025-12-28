@@ -730,25 +730,51 @@ docker pull ghcr.io/supermarioyl/bison/web-ui:latest
 - `linux/amd64`
 - `linux/arm64`
 
-### Helm Repository
+### Helm Installation Methods
+
+Bison Helm charts are distributed via **GitHub Container Registry (GHCR)** using the OCI format, which is the modern standard for Helm 3.8+.
+
+**Requirements:**
+- Helm >= 3.8.0 (for OCI support)
+- Kubernetes >= 1.22
+
+#### Method 1: Install from GHCR (Recommended)
 
 ```bash
-# Add repository
-helm repo add bison https://supermarioyl.github.io/Bison/charts/
+# Install specific version directly from GHCR
+helm install my-bison oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
 
-# Search available versions
-helm search repo bison
+# Or pull the chart first, then install
+helm pull oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
+helm install my-bison bison-0.0.2.tgz
 
-# View chart information
-helm show chart bison/bison
-helm show values bison/bison
-
-# Install specific version
-helm install my-bison bison/bison --version 0.0.1
-
-# Upgrade to latest
-helm upgrade my-bison bison/bison
+# Customize installation
+helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
+  --version 0.0.2 \
+  --namespace bison-system \
+  --create-namespace \
+  --set opencost.url=http://opencost.opencost-system.svc:9003 \
+  --set auth.enabled=true
 ```
+
+#### Method 2: Install from GitHub Releases
+
+```bash
+# Download chart from GitHub Releases
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.2/bison-0.0.2.tgz
+
+# Install from downloaded file
+helm install my-bison bison-0.0.2.tgz \
+  --namespace bison-system \
+  --create-namespace
+```
+
+**Why GHCR OCI Format?**
+- ✅ No need for separate Helm repository maintenance
+- ✅ Unified image and chart management in GHCR
+- ✅ Faster installation (direct pull from registry)
+- ✅ Better version control and immutability
+- ✅ Standard practice for Helm 3.8+
 
 ## Development
 
@@ -781,16 +807,16 @@ Bison uses automated GitHub Actions for releases:
    ```
 
 2. **GitHub Actions automatically**:
-   - Builds multi-platform Docker images
+   - Builds multi-platform Docker images (amd64, arm64)
    - Pushes images to GitHub Container Registry
    - Packages Helm chart
-   - Creates GitHub Release
-   - Updates Helm repository on GitHub Pages
+   - Publishes chart to GHCR (OCI format)
+   - Creates GitHub Release with chart attachment
 
 3. **Verify release**:
    - Check [GitHub Releases](https://github.com/SuperMarioYL/Bison/releases)
-   - Pull new images: `docker pull ghcr.io/supermarioyl/bison/api-server:3.1.0`
-   - Update Helm repo: `helm repo update && helm search repo bison`
+   - Pull new images: `docker pull ghcr.io/supermarioyl/bison/api-server:0.0.2`
+   - Install chart: `helm install test oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2`
 
 ## Project Structure
 

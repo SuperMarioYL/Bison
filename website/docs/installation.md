@@ -44,39 +44,53 @@ helm install opencost opencost/opencost \
 
 ## Installation Methods
 
-Choose one of the following methods to install Bison:
+Bison Helm charts are distributed via **GitHub Container Registry (GHCR)** using the modern OCI format.
 
-### Option A: Helm Repository (Recommended)
+**Requirements:**
+- Helm >= 3.8.0 (for OCI support)
+- Kubernetes >= 1.22
 
-The simplest way to install Bison is using the official Helm repository:
+### Option A: From GHCR (Recommended)
+
+The simplest way to install Bison is directly from GitHub Container Registry:
 
 ```bash
-# Add Bison Helm repository
-helm repo add bison https://supermarioyl.github.io/Bison/charts/
-helm repo update
-
-# Install with default configuration
-helm install bison bison/bison \
+# Install specific version from GHCR
+helm install bison oci://ghcr.io/supermarioyl/bison/bison \
+  --version 0.0.2 \
   --namespace bison-system \
   --create-namespace
 
-# Or customize installation
-helm install bison bison/bison \
+# Or pull the chart first, then install
+helm pull oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
+helm install bison bison-0.0.2.tgz \
+  --namespace bison-system \
+  --create-namespace
+
+# Customize installation
+helm install bison oci://ghcr.io/supermarioyl/bison/bison \
+  --version 0.0.2 \
   --namespace bison-system \
   --create-namespace \
   --set opencost.url=http://opencost.opencost-system.svc:9003 \
-  --set auth.enabled=false \
-  --set apiServer.image.tag=0.0.1 \
-  --set webUI.image.tag=0.0.1
+  --set auth.enabled=true \
+  --set apiServer.image.tag=0.0.2 \
+  --set webUI.image.tag=0.0.2
 ```
+
+**Why GHCR OCI Format?**
+- ✅ No separate Helm repository maintenance needed
+- ✅ Unified with Docker images in GHCR
+- ✅ Faster installation (direct registry pull)
+- ✅ Modern Helm 3.8+ standard practice
 
 ### Option B: From GitHub Release
 
 Download a specific version from GitHub Releases:
 
 ```bash
-# Download latest Helm chart
-VERSION=0.0.1
+# Download Helm chart
+VERSION=0.0.2
 wget https://github.com/SuperMarioYL/Bison/releases/download/v${VERSION}/bison-${VERSION}.tgz
 
 # Install the chart

@@ -1,0 +1,118 @@
+name: Version Documentation
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-versioning
+  cancel-in-progress: false
+
+jobs:
+  create-version:
+    name: Create Documentation Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Extract version from tag (v0.0.3 -> 0.0.3)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Creating documentation version: $VERSION"
+
+      - name: Check if version already exists
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if grep -q "\"${VERSION}\"" website/versions.json; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Version ${VERSION} already exists in versions.json"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version ${VERSION} not found, will create"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          cd website
+          npm ci
+
+      - name: Create documentation version
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cd website
+
+          echo "Running: npm run docusaurus docs:version ${VERSION}"
+          npm run docusaurus docs:version ${VERSION}
+
+          echo "✅ Documentation version ${VERSION} created"
+          echo ""
+          echo "Files created/modified:"
+          git status --short
+
+      - name: Configure Git
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+
+          git add website/versions.json
+          git add website/versioned_docs/
+          git add website/versioned_sidebars/
+
+          git commit -m "docs: add version ${VERSION} [skip ci]
+
+          Auto-generated documentation version from release ${GITHUB_REF}
+
+          - Added version ${VERSION} to versions.json
+          - Created versioned_docs/version-${VERSION}/
+          - Created versioned_sidebars/version-${VERSION}-sidebars.json"
+
+          git push origin main
+
+          echo "✅ Changes pushed to main branch"
+          echo "📚 Documentation will be available at: https://supermarioyl.github.io/Bison/docs/${VERSION}/"
+
+      - name: Summary
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          EXISTS=${{ steps.check.outputs.exists }}
+
+          echo "## Documentation Versioning Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release**: ${GITHUB_REF}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$EXISTS" == "true" ]; then
+            echo "⚠️  **Status**: Version already exists, skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Status**: Documentation version created successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📚 **View Documentation**: [https://supermarioyl.github.io/Bison/docs/${VERSION}/](https://supermarioyl.github.io/Bison/docs/${VERSION}/)" >> $GITHUB_STEP_SUMMARY
+          fi

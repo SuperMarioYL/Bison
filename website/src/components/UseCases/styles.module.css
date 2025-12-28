@@ -1,0 +1,207 @@
+.useCasesSection {
+  padding: 4rem 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+[data-theme='dark'] .useCasesSection {
+  background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 100%);
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.sectionSubtitle {
+  font-size: 1.125rem;
+  color: #666;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+[data-theme='dark'] .sectionSubtitle {
+  color: #b3b3b3;
+}
+
+.useCasesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.useCaseCard {
+  padding: 2rem;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+[data-theme='dark'] .useCaseCard {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.useCaseCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.useCaseCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.useCaseCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.useCaseCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(10, 132, 255, 0.1);
+}
+
+.useCaseIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.useCaseTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.useCaseDescription {
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+[data-theme='dark'] .useCaseDescription {
+  color: #b3b3b3;
+}
+
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.comparisonColumn {
+  min-width: 0;
+}
+
+.comparisonHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.crossIcon {
+  font-size: 1rem;
+}
+
+.checkIcon {
+  font-size: 1rem;
+}
+
+.comparisonDivider {
+  font-size: 1.5rem;
+  color: #0A84FF;
+  font-weight: 700;
+  padding-top: 1.5rem;
+}
+
+.comparisonList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comparisonList li {
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.comparisonList li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.875rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.comparisonItemBefore {
+  color: #999;
+}
+
+.comparisonItemBefore::before {
+  background: #ff4444;
+}
+
+.comparisonItemAfter {
+  color: #333;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .comparisonItemAfter {
+  color: #ffffff;
+}
+
+.comparisonItemAfter::before {
+  background: #00c853;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .useCasesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .comparisonDivider {
+    text-align: center;
+    padding-top: 0;
+    transform: rotate(90deg);
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+}
