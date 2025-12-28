@@ -84,8 +84,8 @@ jobs:
       - name: Set GHCR organization
         id: ghcr
         run: |
-          # Use custom GHCR organization name
-          echo "owner=lei6393" >> $GITHUB_OUTPUT
+          # Convert GitHub username to lowercase for GHCR
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -182,10 +182,10 @@ jobs:
           #### Method 1: From GHCR (Recommended)
           \`\`\`bash
           # Install directly from GitHub Container Registry
-          helm install my-bison oci://ghcr.io/lei6393/charts/bison --version ${VERSION}
+          helm install my-bison oci://ghcr.io/supermarioyl/charts/bison --version ${VERSION}
 
           # Or pull first, then install
-          helm pull oci://ghcr.io/lei6393/charts/bison --version ${VERSION}
+          helm pull oci://ghcr.io/supermarioyl/charts/bison --version ${VERSION}
           helm install my-bison bison-${VERSION}.tgz
           \`\`\`
 
@@ -198,8 +198,8 @@ jobs:
           ### 🐳 Docker Images
 
           \`\`\`bash
-          docker pull ghcr.io/lei6393/bison/api-server:${VERSION}
-          docker pull ghcr.io/lei6393/bison/web-ui:${VERSION}
+          docker pull ghcr.io/supermarioyl/bison/api-server:${VERSION}
+          docker pull ghcr.io/supermarioyl/bison/web-ui:${VERSION}
           \`\`\`
 
           ### 📦 What's Changed
@@ -259,5 +259,6 @@ jobs:
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          # Use custom GHCR organization
-          helm push bison-${VERSION}.tgz oci://ghcr.io/lei6393/charts
+          # Convert GitHub username to lowercase for GHCR
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          helm push bison-${VERSION}.tgz oci://ghcr.io/${REPO_OWNER}/charts
