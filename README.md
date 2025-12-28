@@ -237,29 +237,27 @@ helm install opencost opencost/opencost -n opencost --create-namespace \
 
 ### 2. Deploy Bison
 
-#### Option A: Using Helm Repository (Recommended)
+#### Option A: Using GHCR (Recommended - OCI Format)
 
 ```bash
-# Add Bison Helm repository
-helm repo add bison https://supermarioyl.github.io/Bison/charts/
-helm repo update
-
-# Install Bison
-helm install bison bison/bison \
+# Install directly from GitHub Container Registry
+helm install bison oci://ghcr.io/supermarioyl/bison/bison \
   --namespace bison-system \
   --create-namespace \
   --set auth.enabled=true \
-  --version 0.0.1
+  --version 0.0.2
 ```
+
+> **Note:** Requires Helm >= 3.8.0 for OCI support
 
 #### Option B: From GitHub Release
 
 ```bash
 # Download Helm chart from GitHub Release
-wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.1/bison-0.0.1.tgz
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.2/bison-0.0.2.tgz
 
 # Install from downloaded chart
-helm install bison bison-0.0.1.tgz \
+helm install bison bison-0.0.2.tgz \
   --namespace bison-system \
   --create-namespace \
   --set auth.enabled=true

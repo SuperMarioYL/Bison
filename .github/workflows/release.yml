@@ -212,23 +212,16 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   publish-helm-repo:
-    name: Publish to Helm Repository (GitHub Pages)
+    name: Publish to Helm Repository (GHCR)
     runs-on: ubuntu-latest
     needs: [prepare, create-release]
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: "pages"
-      cancel-in-progress: false
+      packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
 
       - name: Download Helm chart
         uses: actions/download-artifact@v4
@@ -241,103 +234,11 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Fetch current Pages deployment
-        continue-on-error: true
-        run: |
-          # Clone gh-pages branch to preserve documentation
-          if git ls-remote --exit-code --heads origin gh-pages; then
-            echo "Fetching existing gh-pages branch..."
-            git clone --single-branch --branch gh-pages --depth 1 \
-              https://github.com/${{ github.repository }}.git gh-pages-current
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Create backup of everything except charts/ and .git
-            mkdir -p docs-backup
-            cd gh-pages-current
-            for item in *; do
-              if [ "$item" != "charts" ] && [ "$item" != ".git" ]; then
-                cp -r "$item" ../docs-backup/
-              fi
-            done
-            # Also copy hidden files (except .git)
-            for item in .[^.]*; do
-              if [ "$item" != ".git" ] && [ -e "$item" ]; then
-                cp -r "$item" ../docs-backup/
-              fi
-            done
-            cd ..
-
-            echo "Preserved documentation files"
-          else
-            echo "No existing gh-pages branch, skipping preservation"
-          fi
-
-      - name: Prepare Helm repository
+      - name: Push Helm chart to GHCR
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          # Create deployment directory structure
-          mkdir -p _site/charts
-
-          # Copy Helm chart
-          cp bison-${VERSION}.tgz _site/charts/
-
-          # Generate index.yaml in charts/ directory
-          cd _site/charts
-          helm repo index . --url https://${{ github.repository_owner }}.github.io/Bison/charts/
-
-          # Create README.md in charts/ directory if needed
-          if [ ! -f README.md ]; then
-            cat <<EOF > README.md
-          # Bison Helm Chart Repository
-
-          ## Usage
-
-          Add the Helm repository:
-
-          \`\`\`bash
-          helm repo add bison https://${{ github.repository_owner }}.github.io/Bison/charts/
-          helm repo update
-          \`\`\`
-
-          Search for available charts:
-
-          \`\`\`bash
-          helm search repo bison
-          \`\`\`
-
-          Install the chart:
-
-          \`\`\`bash
-          helm install my-bison bison/bison --version ${VERSION}
-          \`\`\`
-
-          ## Available Versions
-
-          See [index.yaml](./index.yaml) for all available versions.
-          EOF
-          fi
-          cd ../..
-
-      - name: Merge with documentation
-        run: |
-          # Restore documentation if it existed
-          if [ -d "docs-backup" ]; then
-            cp -r docs-backup/* _site/
-            # Also copy hidden files
-            if ls docs-backup/.[^.]* 1> /dev/null 2>&1; then
-              cp -r docs-backup/.[^.]* _site/
-            fi
-            echo "Restored documentation files"
-          fi
-
-          # Ensure .nojekyll exists
-          touch _site/.nojekyll
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_site'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          helm push bison-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/bison
