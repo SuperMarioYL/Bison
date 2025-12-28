@@ -10,6 +10,7 @@ import StatsSection from '@site/src/components/StatsSection';
 import ArchitectureDiagram from '@site/src/components/ArchitectureDiagram';
 import UseCases from '@site/src/components/UseCases';
 import Heading from '@theme/Heading';
+import Translate, {translate} from '@docusaurus/Translate';
 
 import styles from './index.module.css';
 
@@ -49,7 +50,7 @@ function HomepageHeader() {
         </p>
         <div className={styles.buttons}>
           <Link className="button button--secondary button--lg" to="/docs">
-            Get Started 🚀
+            <Translate id="homepage.getStarted">Get Started</Translate> 🚀
           </Link>
           <Link
             className="button button--outline button--secondary button--lg"
@@ -66,8 +67,16 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`${siteConfig.title} - Kubernetes GPU Resource Billing & Multi-Tenant Management`}
-      description="Enterprise GPU resource billing and multi-tenant management platform based on Kubernetes, Capsule, and OpenCost">
+      title={translate({
+        id: 'homepage.title',
+        message: 'Bison - Kubernetes GPU Resource Billing & Multi-Tenant Management',
+        description: 'Homepage title',
+      })}
+      description={translate({
+        id: 'homepage.description',
+        message: 'Enterprise GPU resource billing and multi-tenant management platform based on Kubernetes, Capsule, and OpenCost',
+        description: 'Homepage meta description',
+      })}>
       <HomepageHeader />
       <main>
         <StatsSection />

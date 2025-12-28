@@ -1,0 +1,14 @@
+{
+  "version.label": {
+    "message": "0.0.1",
+    "description": "The label for version 0.0.1"
+  },
+  "sidebar.tutorialSidebar.category.User Guides": {
+    "message": "User Guides",
+    "description": "The label for category 'User Guides' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.User Guides.link.generated-index.description": {
+    "message": "Role-based guides for using Bison effectively.",
+    "description": "The generated-index page description for category 'User Guides' in sidebar 'tutorialSidebar'"
+  }
+}
