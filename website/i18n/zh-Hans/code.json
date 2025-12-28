@@ -343,12 +343,10 @@
     "description": "Label for cost savings statistic"
   },
   "component.architectureDiagram.title": {
-    "message": "架构概览",
-    "description": "Architecture diagram section title"
+    "message": "架构概览"
   },
   "component.architectureDiagram.subtitle": {
-    "message": "基于云原生技术构建，具备可扩展性和可靠性",
-    "description": "Architecture diagram section subtitle"
+    "message": "基于云原生技术构建，具备可扩展性和可靠性"
   },
   "component.architectureDiagram.node.bison": {
     "message": "GPU 计费与调度平台",
@@ -371,20 +369,16 @@
     "description": "Description for Prometheus node"
   },
   "component.useCases.title": {
-    "message": "真实应用场景",
-    "description": "Use cases section title"
+    "message": "真实应用场景"
   },
   "component.useCases.subtitle": {
-    "message": "了解 Bison 如何在不同场景下转变 GPU 资源管理",
-    "description": "Use cases section subtitle"
+    "message": "了解 Bison 如何在不同场景下转变 GPU 资源管理"
   },
   "component.useCases.beforeBison": {
-    "message": "使用前",
-    "description": "Before Bison comparison header"
+    "message": "使用前"
   },
   "component.useCases.withBison": {
-    "message": "使用后",
-    "description": "With Bison comparison header"
+    "message": "使用后"
   },
   "component.useCases.aiTraining.title": {
     "message": "AI 训练平台",
@@ -481,5 +475,16 @@
   "component.useCases.billing.after.automated": {
     "message": "自动开票",
     "description": "Billing after: automated invoicing"
+  },
+  "homepage.getStarted": {
+    "message": "快速开始"
+  },
+  "homepage.title": {
+    "message": "Bison - Kubernetes GPU 资源计费与多租户管理",
+    "description": "Homepage title"
+  },
+  "homepage.description": {
+    "message": "基于 Kubernetes、Capsule 和 OpenCost 的企业级 GPU 资源计费和多租户管理平台",
+    "description": "Homepage meta description"
   }
 }

@@ -13,7 +13,7 @@
   },
   "link.item.label.Getting Started": {
     "message": "Getting Started",
-    "description": "The label of footer link with label=Getting Started linking to /docs/intro"
+    "description": "The label of footer link with label=Getting Started linking to /docs"
   },
   "link.item.label.Architecture": {
     "message": "Architecture",
