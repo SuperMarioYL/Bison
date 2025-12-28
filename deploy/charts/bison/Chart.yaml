@@ -14,6 +14,11 @@ keywords:
   - cost-management
 maintainers:
   - name: Bison Team
+annotations:
+  org.opencontainers.image.source: https://github.com/SuperMarioYL/Bison
+  org.opencontainers.image.description: "Bison Helm Chart - GPU资源计费与多租户管理平台"
+  org.opencontainers.image.documentation: https://bison.lei6393.com
+  org.opencontainers.image.usage: "helm install my-bison oci://ghcr.io/supermarioyl/charts/bison --version VERSION"
 # Dependencies are installed separately:
 # - Capsule: helm install capsule projectcapsule/capsule -n capsule-system --create-namespace
 # - OpenCost: helm install opencost opencost/opencost -n opencost --create-namespace
