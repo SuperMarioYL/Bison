@@ -1,0 +1,183 @@
+.architectureSection {
+  padding: 4rem 0;
+  background: #ffffff;
+}
+
+[data-theme='dark'] .architectureSection {
+  background: #0d0d0d;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.sectionSubtitle {
+  font-size: 1.125rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+[data-theme='dark'] .sectionSubtitle {
+  color: #b3b3b3;
+}
+
+.diagramContainer {
+  margin-top: 3rem;
+}
+
+.diagram {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+  margin-bottom: 3rem;
+}
+
+.node {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  animation: nodeAppear 0.6s ease-out backwards;
+}
+
+.node:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.node:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.node:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.node:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.node:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.node:hover {
+  transform: scale(1.05);
+}
+
+.node rect {
+  transition: all 0.3s ease;
+}
+
+.node:hover rect {
+  filter: url(#glow) brightness(1.1);
+}
+
+.connectionLine {
+  stroke-dasharray: 5, 5;
+  animation: dashMove 20s linear infinite;
+}
+
+@keyframes dashMove {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+@keyframes nodeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.nodeDescriptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.nodeCard {
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid;
+  background: rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  animation: cardSlideIn 0.6s ease-out backwards;
+}
+
+[data-theme='dark'] .nodeCard {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nodeCard:nth-child(1) {
+  animation-delay: 0.6s;
+}
+
+.nodeCard:nth-child(2) {
+  animation-delay: 0.7s;
+}
+
+.nodeCard:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+.nodeCard:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+.nodeCard:nth-child(5) {
+  animation-delay: 1s;
+}
+
+.nodeCard:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nodeCardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.nodeCardDescription {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+[data-theme='dark'] .nodeCardDescription {
+  color: #b3b3b3;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .diagram {
+    height: 300px;
+  }
+
+  .nodeDescriptions {
+    grid-template-columns: 1fr;
+  }
+}

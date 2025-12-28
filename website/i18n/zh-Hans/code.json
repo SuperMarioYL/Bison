@@ -325,5 +325,161 @@
   "theme.tags.tagsPageTitle": {
     "message": "标签",
     "description": "The title of the tag list page"
+  },
+  "component.statsSection.efficiency": {
+    "message": "GPU 资源效率",
+    "description": "Label for GPU resource efficiency statistic"
+  },
+  "component.statsSection.deployTime": {
+    "message": "平均部署时间",
+    "description": "Label for average deployment time statistic"
+  },
+  "component.statsSection.tenants": {
+    "message": "支持租户数",
+    "description": "Label for supported tenants statistic"
+  },
+  "component.statsSection.savings": {
+    "message": "成本节省",
+    "description": "Label for cost savings statistic"
+  },
+  "component.architectureDiagram.title": {
+    "message": "架构概览",
+    "description": "Architecture diagram section title"
+  },
+  "component.architectureDiagram.subtitle": {
+    "message": "基于云原生技术构建，具备可扩展性和可靠性",
+    "description": "Architecture diagram section subtitle"
+  },
+  "component.architectureDiagram.node.bison": {
+    "message": "GPU 计费与调度平台",
+    "description": "Description for Bison node"
+  },
+  "component.architectureDiagram.node.capsule": {
+    "message": "多租户管理",
+    "description": "Description for Capsule node"
+  },
+  "component.architectureDiagram.node.opencost": {
+    "message": "成本追踪与分析",
+    "description": "Description for OpenCost node"
+  },
+  "component.architectureDiagram.node.k8s": {
+    "message": "容器编排",
+    "description": "Description for Kubernetes node"
+  },
+  "component.architectureDiagram.node.prometheus": {
+    "message": "指标收集",
+    "description": "Description for Prometheus node"
+  },
+  "component.useCases.title": {
+    "message": "真实应用场景",
+    "description": "Use cases section title"
+  },
+  "component.useCases.subtitle": {
+    "message": "了解 Bison 如何在不同场景下转变 GPU 资源管理",
+    "description": "Use cases section subtitle"
+  },
+  "component.useCases.beforeBison": {
+    "message": "使用前",
+    "description": "Before Bison comparison header"
+  },
+  "component.useCases.withBison": {
+    "message": "使用后",
+    "description": "With Bison comparison header"
+  },
+  "component.useCases.aiTraining.title": {
+    "message": "AI 训练平台",
+    "description": "Title for AI training use case"
+  },
+  "component.useCases.aiTraining.description": {
+    "message": "多团队机器学习工作负载的 GPU 资源共享",
+    "description": "Description for AI training use case"
+  },
+  "component.useCases.aiTraining.before.manual": {
+    "message": "手动分配 GPU",
+    "description": "AI training before: manual allocation"
+  },
+  "component.useCases.aiTraining.before.noCost": {
+    "message": "成本不可见",
+    "description": "AI training before: no cost visibility"
+  },
+  "component.useCases.aiTraining.before.conflicts": {
+    "message": "资源冲突",
+    "description": "AI training before: resource conflicts"
+  },
+  "component.useCases.aiTraining.after.automated": {
+    "message": "自动化调度",
+    "description": "AI training after: automated scheduling"
+  },
+  "component.useCases.aiTraining.after.realtime": {
+    "message": "实时成本追踪",
+    "description": "AI training after: real-time cost tracking"
+  },
+  "component.useCases.aiTraining.after.fair": {
+    "message": "公平资源共享",
+    "description": "AI training after: fair resource sharing"
+  },
+  "component.useCases.enterprise.title": {
+    "message": "企业云平台",
+    "description": "Title for enterprise cloud use case"
+  },
+  "component.useCases.enterprise.description": {
+    "message": "部门级资源隔离与计费",
+    "description": "Description for enterprise cloud use case"
+  },
+  "component.useCases.enterprise.before.chaos": {
+    "message": "共享集群混乱",
+    "description": "Enterprise before: shared cluster chaos"
+  },
+  "component.useCases.enterprise.before.noBudget": {
+    "message": "无预算控制",
+    "description": "Enterprise before: no budget control"
+  },
+  "component.useCases.enterprise.before.manual": {
+    "message": "手动报告",
+    "description": "Enterprise before: manual reporting"
+  },
+  "component.useCases.enterprise.after.isolated": {
+    "message": "租户隔离",
+    "description": "Enterprise after: isolated tenants"
+  },
+  "component.useCases.enterprise.after.prepaid": {
+    "message": "预付费余额",
+    "description": "Enterprise after: prepaid balances"
+  },
+  "component.useCases.enterprise.after.automated": {
+    "message": "自动化报表",
+    "description": "Enterprise after: automated reports"
+  },
+  "component.useCases.billing.title": {
+    "message": "成本中心计费",
+    "description": "Title for cost center billing use case"
+  },
+  "component.useCases.billing.description": {
+    "message": "内部 GPU 资源的计费回扣系统",
+    "description": "Description for cost center billing use case"
+  },
+  "component.useCases.billing.before.excel": {
+    "message": "基于 Excel 跟踪",
+    "description": "Billing before: Excel-based tracking"
+  },
+  "component.useCases.billing.before.monthly": {
+    "message": "月度对账",
+    "description": "Billing before: monthly reconciliation"
+  },
+  "component.useCases.billing.before.disputes": {
+    "message": "账单纠纷",
+    "description": "Billing before: billing disputes"
+  },
+  "component.useCases.billing.after.realtime": {
+    "message": "实时扣费",
+    "description": "Billing after: real-time deduction"
+  },
+  "component.useCases.billing.after.transparent": {
+    "message": "透明定价",
+    "description": "Billing after: transparent pricing"
+  },
+  "component.useCases.billing.after.automated": {
+    "message": "自动开票",
+    "description": "Billing after: automated invoicing"
   }
 }

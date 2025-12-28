@@ -1,11 +1,128 @@
 .features {
   display: flex;
   align-items: center;
-  padding: 2rem 0;
+  padding: 4rem 0;
   width: 100%;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+[data-theme='dark'] .features {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
 }
 
 .featureSvg {
   height: 200px;
   width: 200px;
+}
+
+.featureCard {
+  padding: 2rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .featureCard {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.featureCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0A84FF, #5E5CE6, #BF5AF2);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+}
+
+.featureCard:hover::before {
+  transform: scaleX(1);
+}
+
+.featureCard:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 12px 24px rgba(10, 132, 255, 0.15),
+    0 0 0 1px rgba(10, 132, 255, 0.1);
+}
+
+.featureIcon {
+  font-size: 3rem;
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 1rem;
+}
+
+.featureCard:hover .featureIcon {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.featureTitle {
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .featureTitle {
+  color: #ffffff;
+}
+
+.featureDescription {
+  color: #666;
+  line-height: 1.6;
+}
+
+[data-theme='dark'] .featureDescription {
+  color: #b3b3b3;
+}
+
+/* Stagger animation on scroll */
+.featureCard {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.featureCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.featureCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.featureCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.featureCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.featureCard:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.featureCard:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

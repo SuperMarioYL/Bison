@@ -171,14 +171,19 @@ jobs:
 
           ### 🚀 Installation
 
-          #### Using Helm Repository (Recommended)
+          **Requirements:** Helm >= 3.8.0, Kubernetes >= 1.22
+
+          #### Method 1: From GHCR (Recommended)
           \`\`\`bash
-          helm repo add bison https://${{ github.repository_owner }}.github.io/Bison/
-          helm repo update
-          helm install my-bison bison/bison --version ${VERSION}
+          # Install directly from GitHub Container Registry
+          helm install my-bison oci://ghcr.io/${{ github.repository_owner }}/bison/bison --version ${VERSION}
+
+          # Or pull first, then install
+          helm pull oci://ghcr.io/${{ github.repository_owner }}/bison/bison --version ${VERSION}
+          helm install my-bison bison-${VERSION}.tgz
           \`\`\`
 
-          #### Using GitHub Release
+          #### Method 2: From GitHub Releases
           \`\`\`bash
           wget https://github.com/${{ github.repository }}/releases/download/v${VERSION}/bison-${VERSION}.tgz
           helm install my-bison bison-${VERSION}.tgz
@@ -194,6 +199,13 @@ jobs:
           ### 📦 What's Changed
 
           **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${VERSION}...v${VERSION}
+
+          ### 📚 Documentation
+
+          Version-specific documentation will be available shortly at:
+          - 📖 [https://supermarioyl.github.io/Bison/docs/${VERSION}/](https://supermarioyl.github.io/Bison/docs/${VERSION}/)
+
+          > Note: Documentation versioning happens automatically after release. Allow a few minutes for the docs site to update.
 
           ---
           🤖 Generated with [GitHub Actions](https://github.com/features/actions)

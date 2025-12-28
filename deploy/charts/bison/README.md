@@ -4,7 +4,11 @@ Kubernetes-based GPU Resource Billing and Scheduling Platform
 
 ## Installation
 
-### From GHCR (Recommended)
+**Requirements:**
+- Helm >= 3.8.0 (for OCI support)
+- Kubernetes >= 1.22
+
+### Method 1: From GHCR (Recommended)
 
 Install directly from GitHub Container Registry using OCI format:
 
@@ -15,12 +19,23 @@ helm install my-bison oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
 # Or pull first, then install
 helm pull oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
 helm install my-bison bison-0.0.2.tgz
+
+# With custom configuration
+helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
+  --version 0.0.2 \
+  --namespace bison-system \
+  --create-namespace \
+  --set opencost.url=http://opencost.opencost-system.svc:9003 \
+  --set auth.enabled=true
 ```
 
-**Requirements:**
-- Helm >= 3.8.0 (for OCI support)
+**Why GHCR OCI Format?**
+- ✅ No separate Helm repository needed
+- ✅ Unified with Docker images in GHCR
+- ✅ Faster installation
+- ✅ Modern Helm 3.8+ standard
 
-### From GitHub Releases
+### Method 2: From GitHub Releases
 
 Download the chart from [GitHub Releases](https://github.com/SuperMarioYL/Bison/releases) and install locally:
 
@@ -29,7 +44,9 @@ Download the chart from [GitHub Releases](https://github.com/SuperMarioYL/Bison/
 wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.2/bison-0.0.2.tgz
 
 # Install
-helm install my-bison bison-0.0.2.tgz
+helm install my-bison bison-0.0.2.tgz \
+  --namespace bison-system \
+  --create-namespace
 ```
 
 ## Prerequisites
