@@ -176,10 +176,10 @@ jobs:
           #### Method 1: From GHCR (Recommended)
           \`\`\`bash
           # Install directly from GitHub Container Registry
-          helm install my-bison oci://ghcr.io/${{ github.repository_owner }}/bison/bison --version ${VERSION}
+          helm install my-bison oci://ghcr.io/${{ github.repository_owner }}/charts/bison --version ${VERSION}
 
           # Or pull first, then install
-          helm pull oci://ghcr.io/${{ github.repository_owner }}/bison/bison --version ${VERSION}
+          helm pull oci://ghcr.io/${{ github.repository_owner }}/charts/bison --version ${VERSION}
           helm install my-bison bison-${VERSION}.tgz
           \`\`\`
 
@@ -203,7 +203,7 @@ jobs:
           ### 📚 Documentation
 
           Version-specific documentation will be available shortly at:
-          - 📖 [https://supermarioyl.github.io/Bison/docs/${VERSION}/](https://supermarioyl.github.io/Bison/docs/${VERSION}/)
+          - 📖 [https://bison.lei6393.com/docs/${VERSION}/](https://bison.lei6393.com/docs/${VERSION}/)
 
           > Note: Documentation versioning happens automatically after release. Allow a few minutes for the docs site to update.
 
@@ -253,4 +253,4 @@ jobs:
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          helm push bison-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/bison
+          helm push bison-${VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
