@@ -229,6 +229,69 @@ jobs:
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  commit-versions:
+    name: Commit Version Updates to Main
+    runs-on: ubuntu-latest
+    needs: [prepare, create-release]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download updated files
+        uses: actions/download-artifact@v4
+        with:
+          name: updated-files
+          path: .
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push version updates
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+
+          # Check if there are changes to commit
+          if git diff --quiet deploy/charts/bison/Chart.yaml web-ui/package.json; then
+            echo "⚠️  No changes to commit"
+            exit 0
+          fi
+
+          git add deploy/charts/bison/Chart.yaml
+          git add web-ui/package.json
+
+          git commit -m "chore: bump version to ${VERSION} [skip ci]
+
+          Auto-updated version files from release ${GITHUB_REF}
+
+          - Updated Chart.yaml version to ${VERSION}
+          - Updated package.json version to ${VERSION}"
+
+          git push origin HEAD:main
+
+          echo "✅ Version updates committed to main branch"
+
+      - name: Summary
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          echo "## Version Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release**: ${GITHUB_REF}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Status**: Version files committed to main branch" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Updated files**:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`deploy/charts/bison/Chart.yaml\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`web-ui/package.json\`" >> $GITHUB_STEP_SUMMARY
+
   publish-helm-repo:
     name: Publish to Helm Repository (GHCR)
     runs-on: ubuntu-latest

@@ -2,8 +2,8 @@ apiVersion: v2
 name: bison
 description: Bison - GPU 资源计费平台，基于 Capsule 多租户 + OpenCost 成本追踪
 type: application
-version: 0.0.1
-appVersion: "0.0.1"
+version: 0.0.10
+appVersion: "0.0.10"
 keywords:
   - gpu
   - billing
