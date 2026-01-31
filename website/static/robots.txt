@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://bison.lei6393.com/sitemap.xml
+Sitemap: https://bison.lei6393.com/zh-Hans/sitemap.xml

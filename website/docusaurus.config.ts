@@ -64,6 +64,10 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: "img/bison-social-card.png",
+    metadata: [
+      { name: 'google-site-verification', content: 'AKwgEpVubW0iVPeZN2RkopUMJbx4K-Yy8aWwCZq-T34' },
+      { name: 'baidu-site-verification', content: 'codeva-E3148CbKk3' },
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
     },
