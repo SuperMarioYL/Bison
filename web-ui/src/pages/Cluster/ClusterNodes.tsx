@@ -1,6 +1,7 @@
 import {
   CheckCircleOutlined,
   LockOutlined,
+  PlusOutlined,
   QuestionCircleOutlined,
   StopOutlined,
   TeamOutlined,
@@ -22,6 +23,8 @@ import {
 } from 'antd';
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import NodeOnboardingModal from '../../components/NodeOnboardingModal';
+import OnboardingProgressDrawer from '../../components/OnboardingProgressDrawer';
 import {
   NodeInfo, NodeStatus,
   ResourceDefinition,
@@ -59,6 +62,11 @@ const ClusterNodes: React.FC = () => {
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+
+  // Node onboarding states
+  const [onboardingModalVisible, setOnboardingModalVisible] = useState(false);
+  const [onboardingDrawerVisible, setOnboardingDrawerVisible] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
 
   // Fetch nodes
   const { data: nodes, isLoading } = useQuery({
@@ -155,6 +163,13 @@ const ClusterNodes: React.FC = () => {
   const handleAssign = (nodeName: string) => {
     setSelectedNode(nodeName);
     setAssignModalVisible(true);
+  };
+
+  // Handle onboarding started
+  const handleOnboardingStarted = (jobId: string) => {
+    setCurrentJobId(jobId);
+    setOnboardingModalVisible(false);
+    setOnboardingDrawerVisible(true);
   };
 
   const handleAssignConfirm = () => {
@@ -455,8 +470,17 @@ const ClusterNodes: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0, marginBottom: 16 }}>节点管理</h2>
-        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 style={{ margin: 0 }}>节点管理</h2>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setOnboardingModalVisible(true)}
+          >
+            添加节点
+          </Button>
+        </div>
+
         {/* Status summary */}
         <Space style={{ marginBottom: 16 }}>
           <Tag>共 {nodes?.length || 0} 个节点</Tag>
@@ -539,6 +563,20 @@ const ClusterNodes: React.FC = () => {
           <QuestionCircleOutlined /> 只有独占模式的团队可以被分配节点
         </Text>
       </Modal>
+
+      {/* Node Onboarding Modal */}
+      <NodeOnboardingModal
+        open={onboardingModalVisible}
+        onClose={() => setOnboardingModalVisible(false)}
+        onStarted={handleOnboardingStarted}
+      />
+
+      {/* Onboarding Progress Drawer */}
+      <OnboardingProgressDrawer
+        jobId={currentJobId}
+        open={onboardingDrawerVisible}
+        onClose={() => setOnboardingDrawerVisible(false)}
+      />
     </div>
   );
 };

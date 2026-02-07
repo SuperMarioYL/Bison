@@ -76,14 +76,12 @@ Web UI full name
 {{- end }}
 
 {{/*
-Get image registry
+Build full image reference: global.imageRegistry/repository:tag
+Usage: include "bison.image" (dict "imageConfig" .Values.apiServer.image "global" .Values.global "appVersion" .Chart.AppVersion)
 */}}
-{{- define "bison.imageRegistry" -}}
-{{- if .Values.global.imageRegistry }}
-{{- printf "%s/" .Values.global.imageRegistry }}
-{{- else }}
-{{- "" }}
-{{- end }}
+{{- define "bison.image" -}}
+{{- $tag := .imageConfig.tag | default .appVersion -}}
+{{- printf "%s/%s:%s" .global.imageRegistry .imageConfig.repository $tag -}}
 {{- end }}
 
 {{/*

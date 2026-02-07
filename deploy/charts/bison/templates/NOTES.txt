@@ -9,27 +9,21 @@ Namespace: {{ .Release.Namespace }}
 数据存储在 Kubernetes ConfigMaps 中，无需外部数据库
 
 === 访问方式 ===
-{{- if .Values.apiServer.enabled }}
-{{- if .Values.apiServer.ingress.enabled }}
+{{- if and .Values.webUI.enabled .Values.ingress.enabled }}
 
-API Server: http://{{ .Values.apiServer.ingress.host }}/api/v1
-{{- else }}
-
-API Server:
-  kubectl port-forward svc/{{ include "bison.apiServer.fullname" . }} 8080:{{ .Values.apiServer.service.port }} -n {{ .Release.Namespace }}
-  访问: http://localhost:8080/api/v1
-{{- end }}
-{{- end }}
-{{- if .Values.webUI.enabled }}
-{{- if .Values.webUI.ingress.enabled }}
-
-Web UI: http://{{ .Values.webUI.ingress.host }}
-{{- else }}
+Bison: http://{{ .Values.ingress.host }}
+  Web UI nginx 会自动代理 /api 请求到 API Server
+{{- else if .Values.webUI.enabled }}
 
 Web UI:
   kubectl port-forward svc/{{ include "bison.webUI.fullname" . }} 3000:{{ .Values.webUI.service.port }} -n {{ .Release.Namespace }}
   访问: http://localhost:3000
 {{- end }}
+{{- if .Values.apiServer.enabled }}
+
+API Server (调试):
+  kubectl port-forward svc/{{ include "bison.apiServer.fullname" . }} 8080:{{ .Values.apiServer.service.port }} -n {{ .Release.Namespace }}
+  访问: http://localhost:8080/api/v1
 {{- end }}
 
 === 认证 ===

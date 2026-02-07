@@ -29,7 +29,7 @@ spec:
         - name: web
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ include "bison.imageRegistry" . }}{{ .Values.webUI.image.repository }}:{{ .Values.webUI.image.tag }}"
+          image: "{{ include "bison.image" (dict "imageConfig" .Values.webUI.image "global" .Values.global "appVersion" .Chart.AppVersion) }}"
           imagePullPolicy: {{ .Values.webUI.image.pullPolicy }}
           ports:
             - name: http
@@ -65,4 +65,3 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 {{- end }}
-

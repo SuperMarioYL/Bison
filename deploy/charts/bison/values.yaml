@@ -2,19 +2,19 @@
 
 # Global configuration
 global:
-  imageRegistry: ""
+  imageRegistry: "ghcr.io/supermarioyl"
   imagePullSecrets: []
 
 # Authentication configuration
 auth:
-  enabled: false                       # Enable login authentication
+  enabled: false # Enable login authentication
   admin:
-    username: admin                   # Admin username
-    password: ""                      # Admin password (not recommended, use existingSecret)
-    existingSecret: ""                # Secret containing 'password' key
+    username: admin # Admin username
+    password: "" # Admin password (not recommended, use existingSecret)
+    existingSecret: "" # Secret containing 'password' key
   jwt:
-    secret: ""                        # JWT signing secret (auto-generated if empty)
-    existingSecret: ""                # Secret containing 'jwt-secret' key
+    secret: "" # JWT signing secret (auto-generated if empty)
+    existingSecret: "" # Secret containing 'jwt-secret' key
 
 # External dependencies
 # Note: Capsule and OpenCost must be installed separately before deploying Bison
@@ -23,16 +23,16 @@ dependencies:
   capsule:
     # Capsule must be installed separately
     # helm install capsule projectcapsule/capsule -n capsule-system --create-namespace
-    enabled: true
-  
+    enabled: false
+
   # OpenCost configuration
   opencost:
     # OpenCost must be installed separately
     # helm install opencost opencost/opencost -n opencost --create-namespace
-    enabled: true
+    enabled: false
     # OpenCost API URL (internal service URL) - use port 9003 for API, NOT 9090 (UI)
     apiUrl: "http://opencost.opencost.svc.cluster.local:9003"
-  
+
   # Prometheus configuration (for node metrics, required by OpenCost)
   prometheus:
     enabled: true
@@ -44,18 +44,12 @@ apiServer:
   enabled: true
   replicaCount: 2
   image:
-    repository: ghcr.io/supermarioyl/bison/api-server
-    tag: 0.0.1
+    repository: bison/api-server
+    tag: "" # Defaults to Chart.AppVersion if empty
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 8080
-  ingress:
-    enabled: true
-    className: ""
-    annotations: {}
-    host: bison-api.example.com
-    tls: []
   resources:
     limits:
       cpu: 1000m
@@ -69,21 +63,15 @@ apiServer:
 
 # Web UI configuration
 webUI:
-  enabled: false
+  enabled: true
   replicaCount: 2
   image:
-    repository: ghcr.io/supermarioyl/bison/web-ui
-    tag: 0.0.1
+    repository: bison/web-ui
+    tag: "" # Defaults to Chart.AppVersion if empty
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 80
-  ingress:
-    enabled: true
-    className: ""
-    annotations: {}
-    host: bison.example.com
-    tls: []
   resources:
     limits:
       cpu: 500m
@@ -94,6 +82,16 @@ webUI:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+# Ingress (unified entry point, web-ui nginx proxies /api to api-server)
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  host: bison.example.com
+  tls:
+    enabled: false
+    secretName: "" # If empty, auto-generated as <release>-tls
 
 # Service account
 serviceAccount:

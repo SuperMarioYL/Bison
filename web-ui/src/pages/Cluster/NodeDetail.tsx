@@ -20,6 +20,8 @@ import {
   Popconfirm,
   Alert,
   Empty,
+  Divider,
+  Typography,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -40,12 +42,132 @@ import {
   getEnabledResourceConfigs,
   NodeTaint,
   ResourceDefinition,
+  PrometheusMetric,
 } from '../../services/api';
+import { useFeatures } from '../../hooks/useFeatures';
+
+// Format bytes per second to human-readable string
+const formatBytesPerSec = (value: number): string => {
+  if (value >= 1e9) return (value / 1e9).toFixed(2) + ' GB/s';
+  if (value >= 1e6) return (value / 1e6).toFixed(2) + ' MB/s';
+  if (value >= 1e3) return (value / 1e3).toFixed(1) + ' KB/s';
+  return value.toFixed(0) + ' B/s';
+};
+
+// Shared X-axis time formatter
+const timeAxisLabel = {
+  formatter: (value: number) => {
+    const date = new Date(value);
+    return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+  },
+};
+
+// Build ECharts option for percentage metrics (0-100%)
+const buildPercentChartOption = (data?: PrometheusMetric[], color = '#1890ff') => ({
+  tooltip: { trigger: 'axis' as const },
+  xAxis: { type: 'time' as const, axisLabel: timeAxisLabel },
+  yAxis: { type: 'value' as const, min: 0, max: 100, axisLabel: { formatter: '{value}%' } },
+  series: [{
+    data: data?.map((m) => [m.timestamp * 1000, Number(m.value.toFixed(2))]) || [],
+    type: 'line' as const,
+    smooth: true,
+    areaStyle: { opacity: 0.3 },
+    itemStyle: { color },
+    showSymbol: false,
+  }],
+});
+
+// Build ECharts option for bandwidth metrics (auto-scale, bytes/sec)
+const buildBandwidthChartOption = (data?: PrometheusMetric[], color = '#722ed1') => ({
+  tooltip: {
+    trigger: 'axis' as const,
+    formatter: (params: { value: [number, number] }[]) => {
+      if (!params?.length) return '';
+      const p = params[0];
+      const date = new Date(p.value[0]);
+      const time = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      return `${time}<br/>${formatBytesPerSec(p.value[1])}`;
+    },
+  },
+  xAxis: { type: 'time' as const, axisLabel: timeAxisLabel },
+  yAxis: {
+    type: 'value' as const,
+    min: 0,
+    axisLabel: { formatter: (v: number) => formatBytesPerSec(v) },
+  },
+  series: [{
+    data: data?.map((m) => [m.timestamp * 1000, m.value]) || [],
+    type: 'line' as const,
+    smooth: true,
+    areaStyle: { opacity: 0.3 },
+    itemStyle: { color },
+    showSymbol: false,
+  }],
+});
+
+// Build ECharts option for auto-scale metrics (e.g., temperature)
+const buildAutoScaleChartOption = (data?: PrometheusMetric[], color = '#fa8c16', yFormatter?: (v: number) => string) => ({
+  tooltip: { trigger: 'axis' as const },
+  xAxis: { type: 'time' as const, axisLabel: timeAxisLabel },
+  yAxis: {
+    type: 'value' as const,
+    min: 0,
+    axisLabel: yFormatter ? { formatter: (v: number) => yFormatter(v) } : undefined,
+  },
+  series: [{
+    data: data?.map((m) => [m.timestamp * 1000, Number(m.value.toFixed(1))]) || [],
+    type: 'line' as const,
+    smooth: true,
+    areaStyle: { opacity: 0.3 },
+    itemStyle: { color },
+    showSymbol: false,
+  }],
+});
+
+// Build ECharts option for GPU with average + per-device breakdown
+const buildGpuChartOption = (
+  avgData?: PrometheusMetric[],
+  perDevice?: { labels: Record<string, string>; metrics: PrometheusMetric[] }[],
+  color = '#f5222d',
+) => {
+  const gpuColors = ['#f5222d', '#fa541c', '#fa8c16', '#fadb14', '#a0d911', '#52c41a', '#13c2c2', '#1890ff'];
+  const series: object[] = [
+    {
+      name: '平均值',
+      data: avgData?.map((m) => [m.timestamp * 1000, Number(m.value.toFixed(2))]) || [],
+      type: 'line',
+      smooth: true,
+      lineStyle: { width: 2 },
+      areaStyle: { opacity: 0.2 },
+      itemStyle: { color },
+      showSymbol: false,
+    },
+    ...(perDevice || []).map((s, i) => ({
+      name: `GPU ${s.labels?.gpu ?? s.labels?.GPU_I_ID ?? i}`,
+      data: s.metrics?.map((m) => [m.timestamp * 1000, Number(m.value.toFixed(2))]) || [],
+      type: 'line',
+      smooth: true,
+      lineStyle: { width: 1, type: 'dashed' },
+      itemStyle: { color: gpuColors[i % gpuColors.length] },
+      showSymbol: false,
+    })),
+  ];
+
+  return {
+    tooltip: { trigger: 'axis' as const },
+    legend: { show: (perDevice?.length ?? 0) > 0, bottom: 0, type: 'scroll' as const },
+    xAxis: { type: 'time' as const, axisLabel: timeAxisLabel },
+    yAxis: { type: 'value' as const, min: 0, max: 100, axisLabel: { formatter: '{value}%' } },
+    grid: { bottom: (perDevice?.length ?? 0) > 0 ? 40 : 10 },
+    series,
+  };
+};
 
 const NodeDetail: React.FC = () => {
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: features } = useFeatures();
   const [labelsModalOpen, setLabelsModalOpen] = useState(false);
   const [taintsModalOpen, setTaintsModalOpen] = useState(false);
   const [labelsForm] = Form.useForm();
@@ -86,13 +208,17 @@ const NodeDetail: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Detect node accelerator type from resources
+  const hasGpu = node?.resources?.some(r => r.name.includes('nvidia.com/gpu') && r.capacity > 0) ?? false;
+  const hasNpu = node?.resources?.some(r => r.name.includes('huawei.com/Ascend') && r.capacity > 0) ?? false;
+
   const { data: metrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ['nodeMetrics', name],
+    queryKey: ['nodeMetrics', name, hasGpu, hasNpu],
     queryFn: async () => {
-      const { data } = await getNodeMetrics(name!, 24);
+      const { data } = await getNodeMetrics(name!, { hours: 24, hasGpu, hasNpu });
       return data;
     },
-    enabled: !!name && !!settings?.prometheusUrl,
+    enabled: !!name && !!settings?.prometheusUrl && features?.prometheusEnabled !== false,
   });
 
   const updateLabelsMutation = useMutation({
@@ -441,10 +567,10 @@ const NodeDetail: React.FC = () => {
       ),
       children: (
         <Card>
-          {!settings?.prometheusUrl ? (
+          {features?.prometheusEnabled === false || !settings?.prometheusUrl ? (
             <Alert
-              message="未配置 Prometheus"
-              description="请前往系统设置配置 Prometheus 地址以启用监控功能。"
+              message="Prometheus 未启用"
+              description={features?.prometheusEnabled === false ? "Prometheus 组件未启用，请在 Helm values 中启用 Prometheus 集成。" : "请前往系统设置配置 Prometheus 地址以启用监控功能。"}
               type="warning"
               showIcon
             />
@@ -456,63 +582,104 @@ const NodeDetail: React.FC = () => {
             <Empty description="暂无监控数据" />
           ) : (
             <Row gutter={[16, 16]}>
-              <Col span={24}>
+              {/* CPU & Memory */}
+              <Col xs={24} lg={12}>
                 <Card size="small" title="CPU 使用率 (%)">
-                  <ReactECharts
-                    option={{
-                      tooltip: { trigger: 'axis' },
-                      xAxis: {
-                        type: 'time',
-                        axisLabel: {
-                          formatter: (value: number) => {
-                            const date = new Date(value * 1000);
-                            return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-                          },
-                        },
-                      },
-                      yAxis: { type: 'value', min: 0, max: 100 },
-                      series: [
-                        {
-                          data: metrics?.cpuUsage?.map((m) => [m.timestamp * 1000, m.value.toFixed(2)]) || [],
-                          type: 'line',
-                          smooth: true,
-                          areaStyle: { opacity: 0.3 },
-                        },
-                      ],
-                    }}
-                    style={{ height: 250 }}
-                  />
+                  <ReactECharts option={buildPercentChartOption(metrics?.cpuUsage, '#1890ff')} style={{ height: 220 }} />
                 </Card>
               </Col>
-              <Col span={24}>
+              <Col xs={24} lg={12}>
                 <Card size="small" title="内存使用率 (%)">
-                  <ReactECharts
-                    option={{
-                      tooltip: { trigger: 'axis' },
-                      xAxis: {
-                        type: 'time',
-                        axisLabel: {
-                          formatter: (value: number) => {
-                            const date = new Date(value * 1000);
-                            return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-                          },
-                        },
-                      },
-                      yAxis: { type: 'value', min: 0, max: 100 },
-                      series: [
-                        {
-                          data: metrics?.memoryUsage?.map((m) => [m.timestamp * 1000, m.value.toFixed(2)]) || [],
-                          type: 'line',
-                          smooth: true,
-                          areaStyle: { opacity: 0.3 },
-                          itemStyle: { color: '#52c41a' },
-                        },
-                      ],
-                    }}
-                    style={{ height: 250 }}
-                  />
+                  <ReactECharts option={buildPercentChartOption(metrics?.memoryUsage, '#52c41a')} style={{ height: 220 }} />
                 </Card>
               </Col>
+
+              {/* Network IO */}
+              <Col span={24}><Divider plain><Typography.Text type="secondary">网络 IO</Typography.Text></Divider></Col>
+              <Col xs={24} lg={12}>
+                <Card size="small" title="以太网接收带宽">
+                  {metrics?.networkReceive?.length ? (
+                    <ReactECharts option={buildBandwidthChartOption(metrics.networkReceive, '#722ed1')} style={{ height: 220 }} />
+                  ) : (
+                    <Empty description="暂无数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                  )}
+                </Card>
+              </Col>
+              <Col xs={24} lg={12}>
+                <Card size="small" title="以太网发送带宽">
+                  {metrics?.networkTransmit?.length ? (
+                    <ReactECharts option={buildBandwidthChartOption(metrics.networkTransmit, '#eb2f96')} style={{ height: 220 }} />
+                  ) : (
+                    <Empty description="暂无数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                  )}
+                </Card>
+              </Col>
+
+              {/* RDMA IO - only show if data exists */}
+              {(metrics?.rdmaReceive?.length || metrics?.rdmaTransmit?.length) ? (
+                <>
+                  <Col span={24}><Divider plain><Typography.Text type="secondary">RDMA IO (InfiniBand)</Typography.Text></Divider></Col>
+                  <Col xs={24} lg={12}>
+                    <Card size="small" title="RDMA 接收带宽">
+                      {metrics?.rdmaReceive?.length ? (
+                        <ReactECharts option={buildBandwidthChartOption(metrics.rdmaReceive, '#13c2c2')} style={{ height: 220 }} />
+                      ) : (
+                        <Empty description="暂无数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                      )}
+                    </Card>
+                  </Col>
+                  <Col xs={24} lg={12}>
+                    <Card size="small" title="RDMA 发送带宽">
+                      {metrics?.rdmaTransmit?.length ? (
+                        <ReactECharts option={buildBandwidthChartOption(metrics.rdmaTransmit, '#faad14')} style={{ height: 220 }} />
+                      ) : (
+                        <Empty description="暂无数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                      )}
+                    </Card>
+                  </Col>
+                </>
+              ) : null}
+
+              {/* GPU Metrics (DCGM) - only for GPU nodes */}
+              {hasGpu && (metrics?.gpuUtilization?.length || metrics?.gpuMemoryUtil?.length) ? (
+                <>
+                  <Col span={24}><Divider plain><Typography.Text type="secondary">GPU 监控 (NVIDIA DCGM)</Typography.Text></Divider></Col>
+                  <Col xs={24} lg={12}>
+                    <Card size="small" title="GPU SM 利用率 (%)">
+                      <ReactECharts option={buildGpuChartOption(metrics?.gpuUtilization, metrics?.gpuPerDevice, '#f5222d')} style={{ height: 250 }} />
+                    </Card>
+                  </Col>
+                  <Col xs={24} lg={12}>
+                    <Card size="small" title="GPU 显存利用率 (%)">
+                      <ReactECharts option={buildPercentChartOption(metrics?.gpuMemoryUtil, '#fa541c')} style={{ height: 250 }} />
+                    </Card>
+                  </Col>
+                </>
+              ) : null}
+
+              {/* NPU Metrics (Ascend) - only for NPU nodes */}
+              {hasNpu && (metrics?.npuUtilization?.length || metrics?.npuMemoryUtil?.length) ? (
+                <>
+                  <Col span={24}><Divider plain><Typography.Text type="secondary">NPU 监控 (Huawei Ascend)</Typography.Text></Divider></Col>
+                  <Col xs={24} lg={12}>
+                    <Card size="small" title="NPU AI Core 利用率 (%)">
+                      <ReactECharts option={buildPercentChartOption(metrics?.npuUtilization, '#2f54eb')} style={{ height: 220 }} />
+                    </Card>
+                  </Col>
+                  <Col xs={24} lg={12}>
+                    <Card size="small" title="NPU HBM 使用率 (%)">
+                      <ReactECharts option={buildPercentChartOption(metrics?.npuMemoryUtil, '#a0d911')} style={{ height: 220 }} />
+                    </Card>
+                  </Col>
+                  {metrics?.npuTemperature?.length ? (
+                    <Col xs={24} lg={12}>
+                      <Card size="small" title="NPU 温度 (\u00B0C)">
+                        <ReactECharts option={buildAutoScaleChartOption(metrics.npuTemperature, '#fa8c16', (v) => `${v.toFixed(0)}\u00B0C`)} style={{ height: 220 }} />
+                      </Card>
+                    </Col>
+                  ) : null}
+                </>
+              ) : null}
             </Row>
           )}
         </Card>
