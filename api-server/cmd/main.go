@@ -71,6 +71,9 @@ func main() {
 	reportSvc := service.NewReportService(opencostClient, tenantSvc, projectSvc, billingSvc)
 	nodeSvc := service.NewNodeService(k8sClient)
 	workloadSvc := service.NewWorkloadService(k8sClient)
+	initScriptSvc := service.NewInitScriptService(k8sClient)
+	onboardingSvc := service.NewOnboardingService(k8sClient, nodeSvc, initScriptSvc)
+	configTransferSvc := service.NewConfigTransferService(billingSvc, alertSvc, resourceConfigSvc, initScriptSvc)
 
 	// Initialize scheduler
 	sched := scheduler.NewScheduler(billingSvc, balanceSvc, alertSvc)
@@ -106,6 +109,8 @@ func main() {
 	statusHandler := handler.NewStatusHandler(statusSvc)
 	nodeHandler := handler.NewNodeHandler(nodeSvc)
 	workloadHandler := handler.NewWorkloadHandler(workloadSvc, projectSvc)
+	onboardingHandler := handler.NewOnboardingHandler(onboardingSvc, initScriptSvc)
+	configTransferHandler := handler.NewConfigTransferHandler(configTransferSvc)
 
 	// Setup Gin router
 	if cfg.Mode == "release" {
@@ -135,7 +140,9 @@ func main() {
 		// Feature flags (public)
 		api.GET("/features", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
-				"costEnabled": costSvc.IsEnabled(),
+				"costEnabled":      costSvc.IsEnabled(),
+				"capsuleEnabled":   cfg.CapsuleEnabled,
+				"prometheusEnabled": cfg.PrometheusURL != "",
 			})
 		})
 
@@ -235,6 +242,12 @@ func main() {
 			protected.POST("/nodes/:name/assign", nodeHandler.AssignNodeToTeam)
 			protected.POST("/nodes/:name/release", nodeHandler.ReleaseNode)
 
+			// Node onboarding
+			protected.POST("/nodes/onboard", onboardingHandler.StartOnboarding)
+			protected.GET("/nodes/onboard", onboardingHandler.ListOnboardingJobs)
+			protected.GET("/nodes/onboard/:jobId", onboardingHandler.GetOnboardingJob)
+			protected.DELETE("/nodes/onboard/:jobId", onboardingHandler.CancelOnboardingJob)
+
 			// System settings
 			protected.GET("/settings", settingsHandler.GetSettings)
 			protected.GET("/settings/billing", billingHandler.GetBillingConfig)
@@ -242,6 +255,25 @@ func main() {
 			protected.GET("/settings/alerts", alertHandler.GetAlertConfig)
 			protected.PUT("/settings/alerts", alertHandler.UpdateAlertConfig)
 			protected.POST("/settings/alerts/test", alertHandler.TestChannel)
+
+			// Control plane settings
+			protected.GET("/settings/control-plane", onboardingHandler.GetControlPlaneConfig)
+			protected.PUT("/settings/control-plane", onboardingHandler.UpdateControlPlaneConfig)
+			protected.POST("/settings/control-plane/test", onboardingHandler.TestControlPlaneConnection)
+
+			// Init scripts settings
+			protected.GET("/settings/init-scripts", onboardingHandler.ListInitScripts)
+			protected.POST("/settings/init-scripts", onboardingHandler.CreateInitScript)
+			protected.GET("/settings/init-scripts/:id", onboardingHandler.GetInitScript)
+			protected.PUT("/settings/init-scripts/:id", onboardingHandler.UpdateInitScript)
+			protected.DELETE("/settings/init-scripts/:id", onboardingHandler.DeleteInitScript)
+			protected.PUT("/settings/init-scripts/:id/toggle", onboardingHandler.ToggleInitScript)
+			protected.PUT("/settings/init-scripts/reorder", onboardingHandler.ReorderInitScripts)
+
+			// Configuration import/export
+			protected.GET("/settings/export", configTransferHandler.ExportConfig)
+			protected.POST("/settings/import/preview", configTransferHandler.PreviewImport)
+			protected.POST("/settings/import/apply", configTransferHandler.ApplyImport)
 
 			// Node metrics (from Prometheus)
 			protected.GET("/metrics/node/:name", settingsHandler.GetNodeMetrics)

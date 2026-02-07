@@ -30,7 +30,7 @@ spec:
         - name: api
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ include "bison.imageRegistry" . }}{{ .Values.apiServer.image.repository }}:{{ .Values.apiServer.image.tag }}"
+          image: "{{ include "bison.image" (dict "imageConfig" .Values.apiServer.image "global" .Values.global "appVersion" .Chart.AppVersion) }}"
           imagePullPolicy: {{ .Values.apiServer.image.pullPolicy }}
           ports:
             - name: http
@@ -56,6 +56,9 @@ spec:
                   name: {{ if .Values.auth.jwt.existingSecret }}{{ .Values.auth.jwt.existingSecret }}{{ else }}{{ include "bison.authSecretName" . }}{{ end }}
                   key: jwt-secret
             {{- end }}
+            # Capsule integration
+            - name: CAPSULE_ENABLED
+              value: {{ .Values.dependencies.capsule.enabled | quote }}
             # OpenCost integration
             {{- if .Values.dependencies.opencost.enabled }}
             - name: OPENCOST_URL

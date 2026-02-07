@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFeatures } from '../hooks/useFeatures';
 import './BasicLayout.css';
 
 const { Header, Sider, Content } = Layout;
@@ -26,6 +27,7 @@ const BasicLayout: React.FC = () => {
   const location = useLocation();
   const { logout, username, authEnabled } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
+  const { data: features } = useFeatures();
 
   const handleLogout = () => {
     logout();
@@ -52,26 +54,30 @@ const BasicLayout: React.FC = () => {
       icon: <ClusterOutlined />,
       label: '集群节点',
     },
-    {
-      key: '/teams',
-      icon: <ApartmentOutlined />,
-      label: '团队管理',
-    },
-    {
-      key: '/projects',
-      icon: <ProjectOutlined />,
-      label: '项目管理',
-    },
-    {
-      key: '/users',
-      icon: <UserOutlined />,
-      label: '用户管理',
-    },
-    {
-      key: '/reports',
-      icon: <BarChartOutlined />,
-      label: '报表中心',
-    },
+    ...(features?.capsuleEnabled !== false ? [
+      {
+        key: '/teams',
+        icon: <ApartmentOutlined />,
+        label: '团队管理',
+      },
+      {
+        key: '/projects',
+        icon: <ProjectOutlined />,
+        label: '项目管理',
+      },
+      {
+        key: '/users',
+        icon: <UserOutlined />,
+        label: '用户管理',
+      },
+    ] : []),
+    ...(features?.costEnabled !== false ? [
+      {
+        key: '/reports',
+        icon: <BarChartOutlined />,
+        label: '报表中心',
+      },
+    ] : []),
     {
       key: '/audit',
       icon: <AuditOutlined />,
@@ -116,7 +122,11 @@ const BasicLayout: React.FC = () => {
           className="app-menu"
         />
         <div className="sider-footer">
-          <Text className="version-text">v3.0.0 (Capsule + OpenCost)</Text>
+          <Text className="version-text">v3.0.0{features ? ` (${[
+            features.capsuleEnabled && 'Capsule',
+            features.costEnabled && 'OpenCost',
+            features.prometheusEnabled && 'Prometheus',
+          ].filter(Boolean).join(' + ') || '基础模式'})` : ''}</Text>
         </div>
       </Sider>
       <Layout className="main-layout">

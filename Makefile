@@ -2,7 +2,7 @@
 # 基于 Capsule + OpenCost 架构
 
 # ==================== 配置 ====================
-REGISTRY ?= docker.io
+REGISTRY ?= ghcr.io/supermarioyl
 REPO ?= bison
 VERSION ?= latest
 HELM_RELEASE ?= bison
@@ -304,9 +304,8 @@ deploy: ## 部署 Bison
 	helm upgrade --install $(HELM_RELEASE) ./deploy/charts/bison \
 		--namespace $(NAMESPACE) \
 		--create-namespace \
-		--set apiServer.image.repository=$(REGISTRY)/$(REPO)/api-server \
+		--set global.imageRegistry=$(REGISTRY) \
 		--set apiServer.image.tag=$(VERSION) \
-		--set webUI.image.repository=$(REGISTRY)/$(REPO)/web-ui \
 		--set webUI.image.tag=$(VERSION)
 
 .PHONY: deploy-with-auth
@@ -316,9 +315,8 @@ deploy-with-auth: ## 部署 Bison (启用认证)
 		--create-namespace \
 		--set auth.enabled=true \
 		--set auth.admin.password=$$(openssl rand -base64 12) \
-		--set apiServer.image.repository=$(REGISTRY)/$(REPO)/api-server \
+		--set global.imageRegistry=$(REGISTRY) \
 		--set apiServer.image.tag=$(VERSION) \
-		--set webUI.image.repository=$(REGISTRY)/$(REPO)/web-ui \
 		--set webUI.image.tag=$(VERSION)
 
 .PHONY: undeploy

@@ -17,8 +17,11 @@ import AuditList from './pages/Audit/AuditList';
 import ReportCenter from './pages/Report/ReportCenter';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useFeatures } from './hooks/useFeatures';
 
 const App: React.FC = () => {
+  const { data: features } = useFeatures();
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -29,17 +32,23 @@ const App: React.FC = () => {
       }>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="teams" element={<TeamList />} />
-        <Route path="teams/create" element={<TeamCreate />} />
-        <Route path="teams/:name" element={<TeamDetail />} />
-        <Route path="projects" element={<ProjectList />} />
-        <Route path="projects/create" element={<ProjectCreate />} />
-        <Route path="projects/:name" element={<ProjectDetail />} />
-        <Route path="users" element={<UserList />} />
-        <Route path="users/:email" element={<UserDetail />} />
+        {features?.capsuleEnabled !== false && (
+          <>
+            <Route path="teams" element={<TeamList />} />
+            <Route path="teams/create" element={<TeamCreate />} />
+            <Route path="teams/:name" element={<TeamDetail />} />
+            <Route path="projects" element={<ProjectList />} />
+            <Route path="projects/create" element={<ProjectCreate />} />
+            <Route path="projects/:name" element={<ProjectDetail />} />
+            <Route path="users" element={<UserList />} />
+            <Route path="users/:email" element={<UserDetail />} />
+          </>
+        )}
         <Route path="cluster/nodes" element={<ClusterNodes />} />
         <Route path="cluster/nodes/:name" element={<NodeDetail />} />
-        <Route path="reports" element={<ReportCenter />} />
+        {features?.costEnabled !== false && (
+          <Route path="reports" element={<ReportCenter />} />
+        )}
         <Route path="audit" element={<AuditList />} />
         <Route path="settings/*" element={<Settings />} />
       </Route>

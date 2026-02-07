@@ -54,6 +54,8 @@ export const login = (data: LoginRequest) => api.post<LoginResponse>('/auth/logi
 // Feature flags
 export interface Features {
   costEnabled: boolean;
+  capsuleEnabled: boolean;
+  prometheusEnabled: boolean;
 }
 
 export const getFeatures = () => api.get<Features>('/features');
@@ -693,13 +695,36 @@ export interface PrometheusMetric {
   value: number;
 }
 
+export interface LabeledMetricSeries {
+  labels: Record<string, string>;
+  metrics: PrometheusMetric[];
+}
+
 export interface NodeMetrics {
   cpuUsage: PrometheusMetric[];
   memoryUsage: PrometheusMetric[];
+  // Network IO
+  networkReceive?: PrometheusMetric[];
+  networkTransmit?: PrometheusMetric[];
+  // RDMA IO
+  rdmaReceive?: PrometheusMetric[];
+  rdmaTransmit?: PrometheusMetric[];
+  // GPU (NVIDIA DCGM)
+  gpuUtilization?: PrometheusMetric[];
+  gpuMemoryUtil?: PrometheusMetric[];
+  gpuPerDevice?: LabeledMetricSeries[];
+  // NPU (Huawei Ascend)
+  npuUtilization?: PrometheusMetric[];
+  npuMemoryUtil?: PrometheusMetric[];
+  npuTemperature?: PrometheusMetric[];
 }
 
-export const getNodeMetrics = (name: string, hours = 24) =>
-  api.get<NodeMetrics>(`/metrics/node/${name}`, { params: { hours } });
+export const getNodeMetrics = (name: string, params?: {
+  hours?: number; hasGpu?: boolean; hasNpu?: boolean;
+}) =>
+  api.get<NodeMetrics>(`/metrics/node/${name}`, {
+    params: { hours: params?.hours ?? 24, hasGpu: params?.hasGpu, hasNpu: params?.hasNpu },
+  });
 
 // Resource Configuration APIs
 export type ResourceCategory = 'compute' | 'memory' | 'storage' | 'accelerator' | 'other';
@@ -737,5 +762,171 @@ export const updateResourceConfig = (name: string, config: ResourceDefinition) =
   api.put(`/resource-configs/${encodeURIComponent(name)}`, config);
 export const addResourceConfig = (config: ResourceDefinition) =>
   api.post('/resource-configs', config);
+
+// Node Onboarding APIs
+export type OnboardingJobStatus = 'pending' | 'running' | 'success' | 'failed' | 'cancelled';
+export type SubStepStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped';
+
+export interface NodePlatform {
+  os: string;
+  version: string;
+  arch: string;
+}
+
+export interface SubStep {
+  name: string;
+  status: SubStepStatus;
+  error?: string;
+}
+
+export interface OnboardingJob {
+  id: string;
+  nodeIP: string;
+  nodeName?: string;
+  platform: NodePlatform;
+  status: OnboardingJobStatus;
+  currentStep: number;
+  totalSteps: number;
+  stepMessage: string;
+  subSteps?: SubStep[];
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+
+export interface OnboardingRequest {
+  nodeIP: string;
+  sshPort?: number;
+  sshUsername: string;
+  authMethod: 'password' | 'privateKey';
+  password?: string;
+  privateKey?: string;
+}
+
+export const startNodeOnboarding = (data: OnboardingRequest) =>
+  api.post<OnboardingJob>('/nodes/onboard', data);
+export const getOnboardingJob = (jobId: string) =>
+  api.get<OnboardingJob>(`/nodes/onboard/${jobId}`);
+export const getOnboardingJobs = () =>
+  api.get<{ items: OnboardingJob[] }>('/nodes/onboard');
+export const cancelOnboardingJob = (jobId: string) =>
+  api.delete(`/nodes/onboard/${jobId}`);
+
+// Control Plane Config APIs
+export interface ControlPlaneConfig {
+  host: string;
+  sshPort: number;
+  sshUser: string;
+  authMethod: 'password' | 'privateKey';
+  hasPassword?: boolean;
+  hasPrivateKey?: boolean;
+  password?: string;
+  privateKey?: string;
+}
+
+export const getControlPlaneConfig = () =>
+  api.get<ControlPlaneConfig>('/settings/control-plane');
+export const updateControlPlaneConfig = (config: ControlPlaneConfig) =>
+  api.put('/settings/control-plane', config);
+export const testControlPlaneConnection = () =>
+  api.post('/settings/control-plane/test');
+
+// Init Scripts APIs
+export type ScriptPhase = 'pre-join' | 'post-join';
+
+export interface Script {
+  id: string;
+  os: string;
+  arch: string;
+  content: string;
+}
+
+export interface ScriptGroup {
+  id: string;
+  name: string;
+  description: string;
+  phase: ScriptPhase;
+  enabled: boolean;
+  order: number;
+  builtin: boolean;
+  scripts: Script[];
+}
+
+export const getInitScripts = () =>
+  api.get<{ items: ScriptGroup[] }>('/settings/init-scripts');
+export const getInitScript = (id: string) =>
+  api.get<ScriptGroup>(`/settings/init-scripts/${id}`);
+export const createInitScript = (data: Omit<ScriptGroup, 'id' | 'builtin'>) =>
+  api.post<ScriptGroup>('/settings/init-scripts', data);
+export const updateInitScript = (id: string, data: Partial<ScriptGroup>) =>
+  api.put<ScriptGroup>(`/settings/init-scripts/${id}`, data);
+export const deleteInitScript = (id: string) =>
+  api.delete(`/settings/init-scripts/${id}`);
+export const toggleInitScript = (id: string, enabled: boolean) =>
+  api.put(`/settings/init-scripts/${id}/toggle`, { enabled });
+export const reorderInitScripts = (ids: string[]) =>
+  api.put('/settings/init-scripts/reorder', { ids });
+
+// Configuration Import/Export APIs
+export interface ExportConfigData {
+  version: string;
+  exportedAt: string;
+  exportedBy: string;
+  sections: Record<string, unknown>;
+}
+
+export interface FieldChange {
+  current: unknown;
+  imported: unknown;
+}
+
+export interface ResourceChangeSummary {
+  added?: string[];
+  modified?: string[];
+  removed?: string[];
+  unchanged?: string[];
+}
+
+export interface SectionPreview {
+  present: boolean;
+  valid: boolean;
+  hasSensitiveData: boolean;
+  changes?: Record<string, FieldChange>;
+  summary?: ResourceChangeSummary;
+  warnings?: string[];
+  errors?: string[];
+}
+
+export interface ImportPreviewResult {
+  valid: boolean;
+  version: string;
+  exportedAt?: string;
+  sections: Record<string, SectionPreview>;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface ImportApplyRequest {
+  config: ExportConfigData;
+  sections: string[];
+  preserveSensitive: boolean;
+}
+
+export interface ImportApplyResult {
+  message: string;
+  applied: string[];
+  skipped: string[];
+  warnings: string[];
+}
+
+export const exportConfig = (params?: { sections?: string; includeSensitive?: boolean }) =>
+  api.get('/settings/export', { params, responseType: 'blob' });
+
+export const previewImport = (config: ExportConfigData) =>
+  api.post<ImportPreviewResult>('/settings/import/preview', config);
+
+export const applyImport = (data: ImportApplyRequest) =>
+  api.post<ImportApplyResult>('/settings/import/apply', data);
 
 export default api;

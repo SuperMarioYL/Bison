@@ -32,8 +32,17 @@ func (h *SettingsHandler) GetSettings(c *gin.Context) {
 func (h *SettingsHandler) GetNodeMetrics(c *gin.Context) {
 	nodeName := c.Param("name")
 	hours, _ := strconv.Atoi(c.DefaultQuery("hours", "24"))
+	hasGpu := c.DefaultQuery("hasGpu", "false") == "true"
+	hasNpu := c.DefaultQuery("hasNpu", "false") == "true"
 
-	metrics, err := h.settingsSvc.GetNodeMetrics(c.Request.Context(), nodeName, hours)
+	req := service.NodeMetricsRequest{
+		NodeName: nodeName,
+		Hours:    hours,
+		HasGpu:   hasGpu,
+		HasNpu:   hasNpu,
+	}
+
+	metrics, err := h.settingsSvc.GetNodeMetrics(c.Request.Context(), req)
 	if err != nil {
 		logger.Error("Failed to get node metrics", "node", nodeName, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

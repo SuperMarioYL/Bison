@@ -21,6 +21,9 @@ type Config struct {
 	// External services
 	OpenCostURL   string
 	PrometheusURL string
+
+	// Feature toggles
+	CapsuleEnabled bool
 }
 
 // Load reads configuration from environment variables
@@ -32,8 +35,9 @@ func Load() (*Config, error) {
 		AdminUsername: "admin",
 		AdminPassword: "admin",
 		JWTSecret:     "bison-secret-key-change-in-production",
-		OpenCostURL:   "",
-		PrometheusURL: "",
+		OpenCostURL:    "",
+		PrometheusURL:  "",
+		CapsuleEnabled: true,
 	}
 
 	if port := os.Getenv("PORT"); port != "" {
@@ -68,6 +72,11 @@ func Load() (*Config, error) {
 	}
 	if prometheusURL := os.Getenv("PROMETHEUS_URL"); prometheusURL != "" {
 		cfg.PrometheusURL = prometheusURL
+	}
+
+	// Feature toggles
+	if capsuleEnabled := os.Getenv("CAPSULE_ENABLED"); capsuleEnabled == "false" {
+		cfg.CapsuleEnabled = false
 	}
 
 	return cfg, nil

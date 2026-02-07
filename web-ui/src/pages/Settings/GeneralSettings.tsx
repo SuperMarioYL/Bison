@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Descriptions, Typography, Alert, Spin, Tag } from 'antd';
-import { CloudOutlined, LineChartOutlined, DollarOutlined } from '@ant-design/icons';
+import { CloudOutlined, LineChartOutlined, DollarOutlined, ApartmentOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getSettings, getFeatures } from '../../services/api';
 
@@ -71,15 +71,45 @@ const GeneralSettings: React.FC = () => {
               )}
             </Descriptions.Item>
 
-            <Descriptions.Item 
+            <Descriptions.Item
+              label={
+                <span>
+                  <ApartmentOutlined style={{ marginRight: 8 }} />
+                  Capsule 多租户
+                </span>
+              }
+            >
+              {features?.capsuleEnabled ? (
+                <Tag color="success">已启用</Tag>
+              ) : (
+                <Tag color="default">未启用</Tag>
+              )}
+            </Descriptions.Item>
+
+            <Descriptions.Item
               label={
                 <span>
                   <CloudOutlined style={{ marginRight: 8 }} />
-                  费用统计
+                  费用统计 (OpenCost)
                 </span>
               }
             >
               {features?.costEnabled ? (
+                <Tag color="success">已启用</Tag>
+              ) : (
+                <Tag color="default">未启用</Tag>
+              )}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={
+                <span>
+                  <LineChartOutlined style={{ marginRight: 8 }} />
+                  Prometheus 监控
+                </span>
+              }
+            >
+              {features?.prometheusEnabled ? (
                 <Tag color="success">已启用</Tag>
               ) : (
                 <Tag color="default">未启用</Tag>

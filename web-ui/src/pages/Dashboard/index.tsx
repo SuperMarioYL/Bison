@@ -25,6 +25,7 @@ import {
   CostTrendPoint,
   TopConsumer
 } from '../../services/api';
+import { useFeatures } from '../../hooks/useFeatures';
 
 const { Title, Text } = Typography;
 
@@ -127,6 +128,7 @@ const SimpleLineChart: React.FC<{ data: CostTrendPoint[]; height?: number }> = (
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { data: features } = useFeatures();
 
   const { data: overview, isLoading: overviewLoading } = useQuery({
     queryKey: ['overview'],
@@ -138,12 +140,14 @@ const Dashboard: React.FC = () => {
     queryKey: ['teamUsage', '7d'],
     queryFn: () => getTeamUsage('7d').then(res => res.data),
     refetchInterval: 60000,
+    enabled: features?.capsuleEnabled !== false && (overview?.costEnabled ?? false),
   });
 
   const { data: projectUsage, isLoading: projectUsageLoading } = useQuery({
     queryKey: ['projectUsage', '7d'],
     queryFn: () => getProjectsUsageReport('7d').then(res => res.data),
     refetchInterval: 60000,
+    enabled: features?.capsuleEnabled !== false && (overview?.costEnabled ?? false),
   });
 
   // Fetch resource configs for display names and units
@@ -158,6 +162,7 @@ const Dashboard: React.FC = () => {
     queryKey: ['quotaAlerts', 80],
     queryFn: () => getQuotaAlerts(80).then(res => res.data.items),
     refetchInterval: 60000,
+    enabled: features?.capsuleEnabled !== false,
   });
 
   // Fetch cost trend
@@ -318,8 +323,8 @@ const Dashboard: React.FC = () => {
       {/* Summary Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card 
-            hoverable 
+          <Card
+            hoverable
             onClick={() => navigate('/cluster/nodes')}
             className="glass-card"
           >
@@ -331,44 +336,50 @@ const Dashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card 
-            hoverable 
-            onClick={() => navigate('/teams')}
-            className="glass-card"
-          >
-            <Statistic
-              title="团队数量"
-              value={overview?.totalTeams || 0}
-              prefix={<TeamOutlined />}
-              suffix="个"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card 
-            hoverable 
-            onClick={() => navigate('/projects')}
-            className="glass-card"
-          >
-            <Statistic
-              title="项目数量"
-              value={overview?.totalProjects || 0}
-              prefix={<ProjectOutlined />}
-              suffix="个"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="glass-card">
-            <Statistic
-              title="费用统计"
-              value={overview?.costEnabled ? '已启用' : '未启用'}
-              prefix={<DollarOutlined />}
-              valueStyle={{ color: overview?.costEnabled ? '#52c41a' : '#999' }}
-            />
-          </Card>
-        </Col>
+        {features?.capsuleEnabled !== false && (
+          <>
+            <Col xs={24} sm={12} lg={6}>
+              <Card
+                hoverable
+                onClick={() => navigate('/teams')}
+                className="glass-card"
+              >
+                <Statistic
+                  title="团队数量"
+                  value={overview?.totalTeams || 0}
+                  prefix={<TeamOutlined />}
+                  suffix="个"
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card
+                hoverable
+                onClick={() => navigate('/projects')}
+                className="glass-card"
+              >
+                <Statistic
+                  title="项目数量"
+                  value={overview?.totalProjects || 0}
+                  prefix={<ProjectOutlined />}
+                  suffix="个"
+                />
+              </Card>
+            </Col>
+          </>
+        )}
+        {features?.costEnabled !== false && (
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="glass-card">
+              <Statistic
+                title="费用统计"
+                value={overview?.costEnabled ? '已启用' : '未启用'}
+                prefix={<DollarOutlined />}
+                valueStyle={{ color: overview?.costEnabled ? '#52c41a' : '#999' }}
+              />
+            </Card>
+          </Col>
+        )}
       </Row>
 
       {/* Node Status and Quota Alerts */}
@@ -522,8 +533,8 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Team Usage (if cost enabled) */}
-      {overview?.costEnabled && (
+      {/* Team Usage (if cost and capsule enabled) */}
+      {overview?.costEnabled && features?.capsuleEnabled !== false && (
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col xs={24} lg={12}>
             <Card 
