@@ -20,7 +20,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -ldflags="-w -s" -o api-server ./cmd/main.go
 
 # Runtime stage
-FROM alpine:3.19
+FROM alpine:3.24
 
 WORKDIR /app
 
