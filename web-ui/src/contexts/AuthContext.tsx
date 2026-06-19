@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { getAuthStatus } from '../services/api';
 
 interface AuthContextType {
@@ -72,18 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsername(null);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      authEnabled, 
-      username, 
-      loading, 
-      logout,
-      checkAuth 
-    }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({ isAuthenticated, authEnabled, username, loading, logout, checkAuth }),
+    [isAuthenticated, authEnabled, username, loading, logout, checkAuth],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
