@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.22] - 2026-06-19
+
+### Security — Refuse insecure defaults at startup
+
+- When `AUTH_ENABLED=true`, the server now refuses to start if `JWT_SECRET` is empty or still the built-in public default, or if `ADMIN_PASSWORD` is empty or `admin`. This prevents a production deployment from silently running with a forgeable token-signing key or the well-known default password. Auth-disabled and local development are unaffected; the Helm chart already injects randomly generated, persisted secrets. Added table-driven config validation tests.
+
 ## [0.0.21] - 2026-06-19
 
 ### Added — Release test/lint gate
