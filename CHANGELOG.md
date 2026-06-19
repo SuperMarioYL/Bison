@@ -5,6 +5,13 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.19] - 2026-06-19
+
+### Changed — Backend performance
+
+- `GET /teams` no longer issues one (discarded) OpenCost usage query per team; per-team usage is fetched on demand by the detail/dashboard endpoints. This removes an O(teams) OpenCost call storm from the team list.
+- Billing/report cost computation now resolves the resource price table **once per operation** (`loadPrices` + `costFromPrices`) instead of reading the resource-config ConfigMap for every allocation row, cutting ConfigMap reads from O(allocations) to O(1) in `ProcessBilling`, `GetTeamBill`, and `GetProjectBill`.
+
 ## [0.0.18] - 2026-06-19
 
 ### Fixed — Daily-consumption (burn-rate) estimate

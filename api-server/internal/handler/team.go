@@ -34,17 +34,9 @@ func (h *TeamHandler) ListTeams(c *gin.Context) {
 		return
 	}
 
-	// Enrich with usage data if cost service is enabled
-	if h.costSvc.IsEnabled() {
-		window := c.DefaultQuery("window", "7d")
-		for _, team := range teams {
-			usage, _ := h.costSvc.GetTeamUsageByName(c.Request.Context(), team.Name, window)
-			if usage != nil {
-				// Add usage info (could extend Team struct or return separately)
-				_ = usage
-			}
-		}
-	}
+	// Per-team usage is fetched on demand by the team detail / dashboard endpoints,
+	// not here: the previous enrichment loop issued one OpenCost query per team and
+	// then discarded the result, scaling cost linearly with team count for nothing.
 
 	c.JSON(http.StatusOK, gin.H{"items": teams})
 }

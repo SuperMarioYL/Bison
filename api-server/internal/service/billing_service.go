@@ -210,7 +210,8 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 		}
 	}
 
-	// Aggregate costs by team
+	// Aggregate costs by team. Prices are read once for the whole run.
+	prices := s.loadPrices(ctx)
 	teamCosts := make(map[string]float64)
 	for _, alloc := range allocations {
 		teamName, ok := nsToTeam[alloc.Name]
@@ -218,8 +219,7 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 			continue
 		}
 
-		// Calculate cost based on pricing config
-		cost := s.calculateCost(ctx, config, &alloc)
+		cost := costFromPrices(config, prices, &alloc)
 		teamCosts[teamName] += cost
 	}
 
@@ -372,6 +372,7 @@ func (s *BillingService) GetTeamBill(ctx context.Context, teamName, window strin
 	resourceCosts := make(map[string]float64)
 
 	config, _ := s.GetConfig(ctx)
+	prices := s.loadPrices(ctx)
 
 	if s.opencostClient != nil && s.opencostClient.IsEnabled() {
 		for _, project := range projects {
@@ -387,7 +388,7 @@ func (s *BillingService) GetTeamBill(ctx context.Context, teamName, window strin
 				totalUsage.GPUHours += alloc.GPUHours
 				totalUsage.Minutes += alloc.Minutes
 
-				cost := s.calculateCost(ctx, config, &alloc)
+				cost := costFromPrices(config, prices, &alloc)
 				totalCost += cost
 
 				resourceCosts["cpu"] += alloc.CPUCost
@@ -421,6 +422,7 @@ func (s *BillingService) GetProjectBill(ctx context.Context, projectName, window
 	resourceCosts := make(map[string]float64)
 
 	config, _ := s.GetConfig(ctx)
+	prices := s.loadPrices(ctx)
 
 	if s.opencostClient != nil && s.opencostClient.IsEnabled() {
 		allocations, err := s.opencostClient.GetAllocationForNamespace(ctx, window, projectName)
@@ -434,7 +436,7 @@ func (s *BillingService) GetProjectBill(ctx context.Context, projectName, window
 			usage.GPUHours += alloc.GPUHours
 			usage.Minutes += alloc.Minutes
 
-			cost := s.calculateCost(ctx, config, &alloc)
+			cost := costFromPrices(config, prices, &alloc)
 			totalCost += cost
 
 			resourceCosts["cpu"] += alloc.CPUCost
@@ -550,60 +552,70 @@ func (s *BillingService) getDefaultConfig() *BillingConfig {
 	}
 }
 
-func (s *BillingService) calculateCost(ctx context.Context, config *BillingConfig, alloc *opencost.Allocation) float64 {
-	if config == nil || !config.Enabled {
-		return alloc.TotalCost
-	}
+// resourcePrices holds the per-unit prices used for cost computation, resolved
+// once per billing/report operation instead of per allocation row.
+type resourcePrices struct {
+	cpu         float64
+	memory      float64
+	accelerator float64
+}
 
-	var cost float64
-
-	// Get resource configs for pricing
+// loadPrices reads the enabled resource configs once and builds a price table.
+func (s *BillingService) loadPrices(ctx context.Context) resourcePrices {
 	resourceConfigs, _ := s.resourceConfigSvc.GetEnabledResourceConfigs(ctx)
-
-	// Build price map and find accelerator price
-	cpuPrice := float64(0)
-	memoryPrice := float64(0)
-	acceleratorPrice := float64(0)
-
+	var p resourcePrices
 	for _, rc := range resourceConfigs {
 		if rc.Price <= 0 {
 			continue
 		}
 		switch rc.Name {
 		case "cpu":
-			cpuPrice = rc.Price
+			p.cpu = rc.Price
 		case "memory":
-			memoryPrice = rc.Price
+			p.memory = rc.Price
 		default:
-			// For accelerators (any non-cpu/memory resource), use the first one with price
-			if rc.Category == CategoryAccelerator && acceleratorPrice == 0 {
-				acceleratorPrice = rc.Price
+			// For accelerators (any non-cpu/memory resource), use the first priced one.
+			if rc.Category == CategoryAccelerator && p.accelerator == 0 {
+				p.accelerator = rc.Price
 			}
 		}
 	}
+	return p
+}
 
-	// CPU cost
-	if cpuPrice > 0 {
-		cost += alloc.CPUCoreHours * cpuPrice
+// costFromPrices computes the cost of a single allocation from a precomputed price table.
+func costFromPrices(config *BillingConfig, p resourcePrices, alloc *opencost.Allocation) float64 {
+	if config == nil || !config.Enabled {
+		return alloc.TotalCost
+	}
+
+	var cost float64
+	if p.cpu > 0 {
+		cost += alloc.CPUCoreHours * p.cpu
 	} else {
 		cost += alloc.CPUCost
 	}
-
-	// Memory cost
-	if memoryPrice > 0 {
-		cost += alloc.RAMGBHours * memoryPrice
+	if p.memory > 0 {
+		cost += alloc.RAMGBHours * p.memory
 	} else {
 		cost += alloc.RAMCost
 	}
-
-	// GPU/Accelerator cost (OpenCost reports all accelerators as GPUHours)
-	if acceleratorPrice > 0 {
-		cost += alloc.GPUHours * acceleratorPrice
+	// OpenCost reports all accelerators as GPUHours.
+	if p.accelerator > 0 {
+		cost += alloc.GPUHours * p.accelerator
 	} else {
 		cost += alloc.GPUCost
 	}
-
 	return cost
+}
+
+// calculateCost computes the cost of a single allocation, loading prices each call.
+// In loops prefer loadPrices + costFromPrices to avoid repeated ConfigMap reads.
+func (s *BillingService) calculateCost(ctx context.Context, config *BillingConfig, alloc *opencost.Allocation) float64 {
+	if config == nil || !config.Enabled {
+		return alloc.TotalCost
+	}
+	return costFromPrices(config, s.loadPrices(ctx), alloc)
 }
 
 func (s *BillingService) scaleDownNamespace(ctx context.Context, namespace string) error {
