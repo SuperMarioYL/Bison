@@ -8,7 +8,9 @@ metadata:
     {{- include "bison.labels" . | nindent 4 }}
     app.kubernetes.io/component: web-ui
 spec:
+  {{- if not .Values.webUI.autoscaling.enabled }}
   replicas: {{ .Values.webUI.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "bison.selectorLabels" . | nindent 6 }}
