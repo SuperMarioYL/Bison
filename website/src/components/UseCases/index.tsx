@@ -1,11 +1,21 @@
-import type {ReactNode} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import {translate} from '@docusaurus/Translate';
 import Translate from '@docusaurus/Translate';
 import Heading from '@theme/Heading';
+import {
+  CpuIcon,
+  BuildingIcon,
+  ReportMoneyIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ArrowRightIcon,
+  type IconProps,
+} from '../Icons';
 import styles from './styles.module.css';
 
 interface UseCase {
-  icon: string;
+  Icon: ComponentType<IconProps>;
+  color: string;
   title: string;
   description: string;
   before: string[];
@@ -14,7 +24,8 @@ interface UseCase {
 
 const useCases: UseCase[] = [
   {
-    icon: '🤖',
+    Icon: CpuIcon,
+    color: '#5E5CE6',
     title: translate({
       id: 'component.useCases.aiTraining.title',
       message: 'AI Training Platform',
@@ -61,7 +72,8 @@ const useCases: UseCase[] = [
     ],
   },
   {
-    icon: '🏢',
+    Icon: BuildingIcon,
+    color: '#0A84FF',
     title: translate({
       id: 'component.useCases.enterprise.title',
       message: 'Enterprise Cloud',
@@ -108,7 +120,8 @@ const useCases: UseCase[] = [
     ],
   },
   {
-    icon: '💵',
+    Icon: ReportMoneyIcon,
+    color: '#34C759',
     title: translate({
       id: 'component.useCases.billing.title',
       message: 'Cost Center Billing',
@@ -157,9 +170,17 @@ const useCases: UseCase[] = [
 ];
 
 function ComparisonCard({useCase}: {useCase: UseCase}): ReactNode {
+  const {Icon} = useCase;
   return (
     <div className={styles.useCaseCard}>
-      <div className={styles.useCaseIcon}>{useCase.icon}</div>
+      <div
+        className={styles.useCaseIcon}
+        style={{
+          background: `linear-gradient(135deg, ${useCase.color}, ${useCase.color}cc)`,
+          boxShadow: `0 6px 16px ${useCase.color}40`,
+        }}>
+        <Icon size={26} stroke="#fff" />
+      </div>
       <Heading as="h3" className={styles.useCaseTitle}>
         {useCase.title}
       </Heading>
@@ -168,7 +189,9 @@ function ComparisonCard({useCase}: {useCase: UseCase}): ReactNode {
       <div className={styles.comparison}>
         <div className={styles.comparisonColumn}>
           <div className={styles.comparisonHeader}>
-            <span className={styles.crossIcon}>❌</span>
+            <span className={styles.crossIcon}>
+              <XCircleIcon size={18} />
+            </span>
             <span>
               <Translate id="component.useCases.beforeBison">
                 Before Bison
@@ -184,11 +207,15 @@ function ComparisonCard({useCase}: {useCase: UseCase}): ReactNode {
           </ul>
         </div>
 
-        <div className={styles.comparisonDivider}>→</div>
+        <div className={styles.comparisonDivider}>
+          <ArrowRightIcon size={22} />
+        </div>
 
         <div className={styles.comparisonColumn}>
           <div className={styles.comparisonHeader}>
-            <span className={styles.checkIcon}>✅</span>
+            <span className={styles.checkIcon}>
+              <CheckCircleIcon size={18} />
+            </span>
             <span>
               <Translate id="component.useCases.withBison">
                 With Bison

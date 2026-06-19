@@ -1,0 +1,108 @@
+.section {
+  padding: 4rem 0;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+[data-theme='dark'] .section {
+  background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 100%);
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.subtitle {
+  color: #86868b;
+  font-size: 1.1rem;
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+[data-theme='dark'] .subtitle {
+  color: #98989d;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.7);
+  color: #5b5f66;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme='dark'] .tab {
+  background: rgba(40, 40, 40, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #c7c7cc;
+}
+
+.tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(10, 132, 255, 0.4);
+  color: var(--ifm-color-primary);
+}
+
+.tabActive {
+  background: linear-gradient(135deg, #0A84FF, #5E5CE6);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(10, 132, 255, 0.35);
+}
+
+[data-theme='dark'] .tabActive {
+  color: #fff;
+}
+
+.frame {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.08), rgba(191, 90, 242, 0.08));
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 24px 60px rgba(10, 30, 80, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] .frame {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

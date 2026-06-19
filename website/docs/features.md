@@ -8,7 +8,7 @@ Bison provides a comprehensive suite of features for GPU resource management, bi
 
 ## See Bison in Action
 
-### 🎯 Real-Time Resource Dashboard
+### Real-Time Resource Dashboard
 
 ![Bison Dashboard](/img/ui-dashboard.png)
 
@@ -26,15 +26,15 @@ Bison provides a comprehensive suite of features for GPU resource management, bi
 
 ---
 
-### 💼 Team Management & Budget Monitoring
+### Team Management & Budget Monitoring
 
 ![Team Management](/img/ui-team.png)
 
 **What you see:**
 - **Team List** with real-time status indicators:
-  - 🟢 Green balance = Healthy budget
-  - 🟡 Yellow balance = Approaching threshold
-  - 🔴 Red balance = Low balance or suspended
+  - **Green** balance = Healthy budget
+  - **Amber** balance = Approaching threshold
+  - **Red** balance = Low balance or suspended
 - **Resource Allocation** - CPU/Memory/GPU quotas per team (e.g., "cpu 0/10" means 0 used out of 10 allocated)
 - **Project Count** - Number of namespaces/projects under each team
 - **Quick Actions** - Edit quotas, recharge balance, or delete team with one click
@@ -46,7 +46,7 @@ Bison provides a comprehensive suite of features for GPU resource management, bi
 
 ---
 
-### 💰 Flexible Billing Configuration
+### Flexible Billing Configuration
 
 ![Billing Configuration](/img/ui-billing.png)
 
@@ -66,52 +66,62 @@ Bison provides a comprehensive suite of features for GPU resource management, bi
 
 ## Core Capabilities
 
+> **Legend** — items marked _Planned_ are on the [optimization roadmap](https://github.com/SuperMarioYL/Bison/blob/main/docs/optimization-roadmap.md) and not yet implemented. Everything else ships today.
+
 ### Multi-Tenant Management
-✅ **Capsule-Powered Isolation** - True multi-tenancy using Kubernetes-native Capsule operator
-✅ **OIDC Integration** - Enterprise SSO support for authentication
-✅ **Team-Based Access Control** - Manage users, roles, and permissions per team
-✅ **Shared & Exclusive Node Pools** - Flexible resource allocation strategies
+- **Capsule-Powered Isolation** — true multi-tenancy using the Kubernetes-native Capsule operator
+- **Team-Based Access Control** — manage users, roles, and permissions per team
+- **Shared & Exclusive Node Pools** — flexible resource allocation strategies
+- **Enterprise SSO / OIDC** — _Planned_
 
 ### Real-Time Billing
-✅ **Usage-Based Billing** - Accurate cost tracking based on actual resource consumption
-✅ **Configurable Pricing** - Set custom rates for CPU, Memory, GPU, and any Kubernetes resource
-✅ **Multi-Currency Support** - CNY, USD, EUR, and more
-✅ **Billing Rules Engine** - Define custom billing logic and aggregation periods
+- **Usage-Based Billing** — accurate cost tracking based on actual resource consumption (via OpenCost)
+- **Configurable Pricing** — set custom rates for CPU, Memory, GPU, and any Kubernetes resource
+- **Multi-Currency Support** — configurable currency and symbol (e.g. CNY ¥, USD $)
+- **Prepaid Balances with Real-Time Deduction** — hourly metering with optimistic-concurrency-safe balance writes
+
+### Cluster & Node Management
+- **Node Inventory** — live view of every node with architecture, status, and GPU device breakdown
+- **Node Pool Modes** — mark nodes as shared, exclusive, disabled, or unmanaged
+- **Per-Node Detail** — CPU / memory / GPU utilization time series and workload placement
+- **Resource Discovery** — auto-discover cluster resources (CPU, memory, GPU, storage, custom) and configure display units and pricing
+
+### Automated Node Onboarding
+- **Init Script Generation** — generate a per-node bootstrap script from the control-plane configuration
+- **SSH Onboarding Tasks** — run onboarding over SSH with live progress tracking
+- **Control-Plane Configuration** — manage how new nodes join the managed pool
 
 ### Dynamic Resource Quotas
-✅ **Per-Team Quotas** - CPU, Memory, GPU, Storage, and custom resources
-✅ **Namespace Quotas** - Project-level resource limits within teams
-✅ **Auto-Enforcement** - Kubernetes-native quota enforcement
-✅ **Quota Alerts** - Notifications when approaching limits
+- **Per-Team Quotas** — CPU, Memory, GPU, Storage, and custom resources
+- **Namespace Quotas** — project-level resource limits within teams
+- **Auto-Enforcement** — Kubernetes-native quota enforcement via Capsule
+- **Quota Alerts** — dashboard warnings when usage approaches limits (≥ 80%)
 
 ### Team Balance & Wallet System
-✅ **Prepaid Balances** - Team wallets with real-time deduction
-✅ **Auto-Deduction** - Automated billing based on resource usage
-✅ **Balance Thresholds** - Configurable warning and suspension levels
-✅ **Transaction History** - Complete audit trail of all balance changes
+- **Prepaid Balances** — team wallets with real-time deduction
+- **Transaction History** — complete audit trail of every recharge and deduction
+- **Grace Period & Auto-Suspension** — configurable grace window before suspending overdue teams
 
 ### Auto-Recharge
-✅ **Scheduled Top-Ups** - Weekly or monthly automatic recharges
-✅ **Custom Amounts** - Flexible recharge amounts per team
-✅ **Recharge Notifications** - Alert teams when balance is added
+- **Scheduled Top-Ups** — weekly or monthly automatic recharges
+- **Custom Amounts** — flexible recharge amounts per team
 
 ### Balance Alerts
-✅ **Multi-Channel Notifications** - Webhook, DingTalk, WeChat, Email
-✅ **Configurable Thresholds** - Set warning levels (e.g., 20%, 10%, 5%)
-✅ **Auto-Suspension** - Automatically suspend workloads when balance depleted
-✅ **Custom Templates** - Customize alert messages
+- **Multi-Channel Notifications** — Webhook, DingTalk, WeChat
+- **Configurable Thresholds** — set warning levels (e.g. 20%, 10%, 5%)
+- **Auto-Suspension** — automatically suspend workloads when the grace period expires
+- **Email / SMTP notifications** — _Planned_
 
 ### Usage Reports
-✅ **Team Analytics** - Per-team cost breakdowns and trends
-✅ **Project Analytics** - Namespace-level resource consumption
-✅ **Export Capabilities** - CSV, Excel, PDF reports
-✅ **Historical Data** - 30/60/90-day cost analysis
+- **Team & Project Analytics** — per-team and per-namespace cost breakdowns and trends
+- **CSV Export** — export summary reports for finance reconciliation
+- **Historical Windows** — 7 / 30 / 90-day cost analysis
+- **Excel & PDF export** — _Planned_
 
 ### Audit Logging
-✅ **Complete Operation History** - Track all administrative actions
-✅ **User Attribution** - Who did what and when
-✅ **Resource Changes** - Track quota, balance, and configuration changes
-✅ **Compliance Ready** - Meet internal audit requirements
+- **Complete Operation History** — track administrative actions with pagination
+- **User Attribution** — who did what and when
+- **Resource Changes** — track quota, balance, and configuration changes
 
 ---
 
@@ -158,7 +168,7 @@ graph TB
 - **Scalable** - Stateless API server that can scale horizontally
 - **Secure** - Kubernetes RBAC integration and optional authentication
 - **Observable** - Prometheus metrics and structured logging
-- **Extensible** - Plugin architecture for custom billing rules and alerts
+- **Configurable** - custom per-resource pricing, alert thresholds, and grace policy
 
 ---
 
@@ -176,7 +186,6 @@ Bison uses [Capsule](https://capsule.clastix.io/) for multi-tenancy:
 - Team-based tenant isolation
 - Namespace quota enforcement
 - Network and security policies
-- OIDC/SSO integration
 
 ### Prometheus Integration
 Metrics collection and monitoring:

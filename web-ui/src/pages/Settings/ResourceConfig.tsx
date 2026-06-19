@@ -72,7 +72,6 @@ const ResourceConfig: React.FC = () => {
   // Sync fetched data to local state
   React.useEffect(() => {
     if (configsData) {
-      console.log('Loaded configs from API:', configsData);
       setConfigs(configsData);
       setHasChanges(false);
     }
@@ -169,7 +168,6 @@ const ResourceConfig: React.FC = () => {
       ...cfg,
       divisor: cfg.divisor && cfg.divisor > 0 ? cfg.divisor : 1,
     }));
-    console.log('Saving configs:', validConfigs);
     saveMutation.mutate(validConfigs);
   };
 

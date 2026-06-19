@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -200,39 +199,49 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 		}
 
 		reason := fmt.Sprintf("Usage billing for %s", window)
-		if err := s.balanceSvc.Deduct(ctx, teamName, cost, reason); err != nil {
+		// Deduct returns the authoritative post-write balance, so the suspension
+		// decision below is no longer based on a racy second read.
+		newBalance, err := s.balanceSvc.Deduct(ctx, teamName, cost, reason)
+		if err != nil {
 			logger.Error("Failed to deduct balance", "team", teamName, "cost", cost, "error", err)
 			continue
 		}
 
-		// Check if team is now in debt
-		balance, _ := s.balanceSvc.GetBalance(ctx, teamName)
-		if balance != nil && balance.Amount < 0 {
-			logger.Warn("Team is in debt", "team", teamName, "balance", balance.Amount)
+		if newBalance < 0 {
+			logger.Warn("Team is in debt", "team", teamName, "balance", newBalance)
 
-			// Record when balance first went negative
-			if balance.OverdueAt == nil {
+			// Determine the overdue start time, preserving any existing marker so the
+			// grace period is measured from when the balance first went negative.
+			cur, err := s.balanceSvc.GetBalance(ctx, teamName)
+			if err != nil {
+				logger.Error("Failed to read balance for overdue check", "team", teamName, "error", err)
+				continue
+			}
+			overdueAt := cur.OverdueAt
+			if overdueAt == nil {
 				now := time.Now()
-				if err := s.balanceSvc.SetOverdueAt(ctx, teamName, &now); err != nil {
+				overdueAt = &now
+				if err := s.balanceSvc.SetOverdueAt(ctx, teamName, overdueAt); err != nil {
 					logger.Error("Failed to set overdue time", "team", teamName, "error", err)
 				}
-				balance.OverdueAt = &now
 			}
 
 			// Check if grace period has passed
-			if s.isGracePeriodExpired(config, balance.OverdueAt) {
-				logger.Warn("Grace period expired, suspending team", "team", teamName, "overdueAt", balance.OverdueAt)
+			if s.isGracePeriodExpired(config, overdueAt) {
+				logger.Warn("Grace period expired, suspending team", "team", teamName, "overdueAt", overdueAt)
 				if err := s.SuspendTeam(ctx, teamName); err != nil {
 					logger.Error("Failed to suspend team", "team", teamName, "error", err)
 				}
 			} else {
-				remaining := s.balanceSvc.CalculateGraceRemaining(balance.OverdueAt, config.GracePeriodValue, config.GracePeriodUnit)
+				remaining := s.balanceSvc.CalculateGraceRemaining(overdueAt, config.GracePeriodValue, config.GracePeriodUnit)
 				logger.Info("Team in grace period", "team", teamName, "remaining", remaining)
 			}
-		} else if balance != nil && balance.Amount >= 0 && balance.OverdueAt != nil {
-			// Balance is positive again, clear overdue time
-			if err := s.balanceSvc.SetOverdueAt(ctx, teamName, nil); err != nil {
-				logger.Error("Failed to clear overdue time", "team", teamName, "error", err)
+		} else {
+			// Balance is non-negative again, clear any overdue marker.
+			if cur, err := s.balanceSvc.GetBalance(ctx, teamName); err == nil && cur.OverdueAt != nil {
+				if err := s.balanceSvc.SetOverdueAt(ctx, teamName, nil); err != nil {
+					logger.Error("Failed to clear overdue time", "team", teamName, "error", err)
+				}
 			}
 		}
 	}
@@ -639,6 +648,3 @@ func (s *BillingService) scaleUpNamespace(ctx context.Context, namespace string)
 
 	return nil
 }
-
-// Unused import fix
-var _ = appsv1.Deployment{}

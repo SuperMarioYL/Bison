@@ -36,7 +36,7 @@ helm install capsule projectcapsule/capsule \
 # Using Helm
 helm repo add opencost https://opencost.github.io/opencost-helm-chart
 helm install opencost opencost/opencost \
-  --namespace opencost-system \
+  --namespace opencost \
   --create-namespace \
   --set prometheus.internal.serviceName=prometheus-server \
   --set prometheus.internal.namespaceName=prometheus-system
@@ -56,26 +56,27 @@ The simplest way to install Bison is directly from GitHub Container Registry:
 
 ```bash
 # Install specific version from GHCR
-helm install bison oci://ghcr.io/supermarioyl/bison/bison \
-  --version 0.0.2 \
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
   --namespace bison-system \
   --create-namespace
 
 # Or pull the chart first, then install
-helm pull oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
-helm install bison bison-0.0.2.tgz \
+helm pull oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12
+helm install bison bison-0.0.12.tgz \
   --namespace bison-system \
   --create-namespace
 
 # Customize installation
-helm install bison oci://ghcr.io/supermarioyl/bison/bison \
-  --version 0.0.2 \
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
   --namespace bison-system \
   --create-namespace \
-  --set opencost.url=http://opencost.opencost-system.svc:9003 \
+  --set dependencies.opencost.apiUrl=http://opencost.opencost.svc.cluster.local:9003 \
+  --set dependencies.opencost.enabled=true \
   --set auth.enabled=true \
-  --set apiServer.image.tag=0.0.2 \
-  --set webUI.image.tag=0.0.2
+  --set apiServer.image.tag=0.0.12 \
+  --set webUI.image.tag=0.0.12
 ```
 
 **Why GHCR OCI Format?**
@@ -90,7 +91,7 @@ Download a specific version from GitHub Releases:
 
 ```bash
 # Download Helm chart
-VERSION=0.0.2
+VERSION=0.0.12
 wget https://github.com/SuperMarioYL/Bison/releases/download/v${VERSION}/bison-${VERSION}.tgz
 
 # Install the chart
@@ -129,18 +130,20 @@ Bison can be configured using Helm values. Here are the key configuration option
 apiServer:
   image:
     repository: ghcr.io/supermarioyl/bison/api-server
-    tag: 0.0.1
-  replicas: 2
+    tag: 0.0.12
+  replicaCount: 2
 
 webUI:
   image:
     repository: ghcr.io/supermarioyl/bison/web-ui
-    tag: 0.0.1
-  replicas: 2
+    tag: 0.0.12
+  replicaCount: 2
 
 # OpenCost URL
-opencost:
-  url: http://opencost.opencost-system.svc:9003
+dependencies:
+  opencost:
+    enabled: true
+    apiUrl: http://opencost.opencost.svc.cluster.local:9003
 
 # Authentication
 auth:
@@ -150,12 +153,14 @@ auth:
 ### Custom Configuration Example
 
 ```bash
-helm install bison bison/bison \
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
   --namespace bison-system \
   --create-namespace \
-  --set apiServer.replicas=3 \
-  --set webUI.replicas=3 \
-  --set opencost.url=http://opencost.opencost-system.svc:9003 \
+  --set apiServer.replicaCount=3 \
+  --set webUI.replicaCount=3 \
+  --set dependencies.opencost.apiUrl=http://opencost.opencost.svc.cluster.local:9003 \
+  --set dependencies.opencost.enabled=true \
   --set auth.enabled=true
 ```
 
@@ -168,16 +173,16 @@ After installation, verify that all components are running:
 kubectl get pods -n bison-system
 
 # Expected output:
-# NAME                              READY   STATUS    RESTARTS   AGE
-# bison-api-server-xxxxxxxxx-xxxxx  1/1     Running   0          2m
-# bison-webui-xxxxxxxxx-xxxxx       1/1     Running   0          2m
+# NAME                          READY   STATUS    RESTARTS   AGE
+# bison-api-xxxxxxxxx-xxxxx      1/1     Running   0          2m
+# bison-web-xxxxxxxxx-xxxxx      1/1     Running   0          2m
 
 # Check services
 kubectl get svc -n bison-system
 
 # Check logs
-kubectl logs -n bison-system deployment/bison-api-server
-kubectl logs -n bison-system deployment/bison-webui
+kubectl logs -n bison-system deployment/bison-api
+kubectl logs -n bison-system deployment/bison-web
 ```
 
 ## Access the Platform
@@ -186,7 +191,7 @@ kubectl logs -n bison-system deployment/bison-webui
 
 ```bash
 # Port-forward the Web UI
-kubectl port-forward -n bison-system svc/bison-webui 3000:80
+kubectl port-forward -n bison-system svc/bison-web 3000:80
 
 # Access at http://localhost:3000
 ```
@@ -213,14 +218,14 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: bison-webui
+            name: bison-web
             port:
               number: 80
       - path: /api
         pathType: Prefix
         backend:
           service:
-            name: bison-api-server
+            name: bison-api
             port:
               number: 8080
 ```
@@ -254,14 +259,10 @@ docker pull ghcr.io/supermarioyl/bison/web-ui:latest
 To upgrade Bison to a new version:
 
 ```bash
-# Update Helm repository
-helm repo update
-
-# Upgrade to latest version
-helm upgrade bison bison/bison --namespace bison-system
-
-# Or upgrade to specific version
-helm upgrade bison bison/bison --version 0.0.2 --namespace bison-system
+# Upgrade to a specific version directly from GHCR
+helm upgrade bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
+  --namespace bison-system
 ```
 
 ## Uninstalling
@@ -283,7 +284,7 @@ kubectl delete namespace bison-system
 Check pod logs for errors:
 
 ```bash
-kubectl logs -n bison-system deployment/bison-api-server
+kubectl logs -n bison-system deployment/bison-api
 kubectl describe pod -n bison-system <pod-name>
 ```
 
@@ -292,8 +293,8 @@ kubectl describe pod -n bison-system <pod-name>
 Verify OpenCost is running and accessible:
 
 ```bash
-kubectl get svc -n opencost-system
-kubectl port-forward -n opencost-system svc/opencost 9003:9003
+kubectl get svc -n opencost
+kubectl port-forward -n opencost svc/opencost 9003:9003
 
 # Test endpoint
 curl http://localhost:9003/healthz

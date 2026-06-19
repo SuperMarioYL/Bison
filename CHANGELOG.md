@@ -5,6 +5,37 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2026-06-19
+
+### Fixed — Billing correctness & concurrency
+
+- **Atomic balance updates**: `Recharge`, `Deduct`, auto-recharge, and overdue-marking now perform their ConfigMap read-modify-write under `retry.RetryOnConflict`, eliminating silent lost updates / balance corruption under concurrent operations.
+- **`Deduct` returns the post-write balance**, so `ProcessBilling` no longer makes a racy second read to decide suspension.
+- **Overdue marker preserved across deductions** — a deduction no longer wipes `OverdueAt`, so the grace-period clock is measured from when the balance first went negative (teams now actually suspend after the grace window instead of never).
+- **Scheduler hardening**: per-task `panic` recovery (one failing task can no longer crash the api-server) plus startup jitter to avoid multi-replica stampede.
+- **Stopgap against double-billing**: `apiServer.replicaCount` defaults to `1` until scheduler leader election lands (the scheduler runs in the api-server; 2 replicas billed tenants twice).
+
+### Changed — Performance
+
+- **K8s client** QPS/Burst raised to 50/100 (from the 5/10 default) so dashboard/billing list bursts are not client-side throttled.
+- **Web UI** route-level code splitting + Vite `manualChunks`: echarts (~1 MB) and per-page bundles now load on demand instead of shipping with every Login/Dashboard session.
+
+### Added
+
+- First backend unit tests (`calculateCost`, `Recharge`/`Deduct`, grace-period logic, concurrent-recharge race test) with a fake-clientset optimistic-concurrency harness.
+- Top-level React `ErrorBoundary` and a shared `getApiErrorMessage` utility.
+- `docs/optimization-roadmap.md` — prioritized continuous-optimization roadmap from a full-codebase audit.
+
+### Changed — Website & docs
+
+- Replaced emoji icons with inline Tabler-style SVG icons; added an interactive vector `ProductShowcase` (Dashboard / Cluster / Reports / Billing).
+- Fixed the displayed UI version (was hardcoded `v3.0.0`; now injected from `package.json`).
+- Corrected install docs: OCI path `charts/bison`, `/healthz` health check, OpenCost namespace/value keys, `replicaCount`, object names `bison-api`/`bison-web`.
+- New 1200×630 social/OG card and SEO metadata; reduced-motion + offscreen-pause for the particle background.
+- Removed the unused `@ant-design/pro-components` dependency and stray `console.log`s.
+
+> Note: versions 0.0.2–0.0.11 were release-automation version bumps without dedicated changelog entries.
+
 ## [0.0.1] - 2025-12-27
 
 ### 🎉 Initial Release

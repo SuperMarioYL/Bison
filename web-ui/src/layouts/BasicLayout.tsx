@@ -122,7 +122,7 @@ const BasicLayout: React.FC = () => {
           className="app-menu"
         />
         <div className="sider-footer">
-          <Text className="version-text">v3.0.0{features ? ` (${[
+          <Text className="version-text">v{__APP_VERSION__}{features ? ` (${[
             features.capsuleEnabled && 'Capsule',
             features.costEnabled && 'OpenCost',
             features.prometheusEnabled && 'Prometheus',

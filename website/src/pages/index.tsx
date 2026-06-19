@@ -7,10 +7,12 @@ import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import ParticleBackground from '@site/src/components/ParticleBackground';
 import StatsSection from '@site/src/components/StatsSection';
+import ProductShowcase from '@site/src/components/ProductShowcase';
 import ArchitectureDiagram from '@site/src/components/ArchitectureDiagram';
 import UseCases from '@site/src/components/UseCases';
 import Heading from '@theme/Heading';
 import Translate, {translate} from '@docusaurus/Translate';
+import {ArrowRightIcon, GithubIcon} from '@site/src/components/Icons';
 
 import styles from './index.module.css';
 
@@ -49,13 +51,19 @@ function HomepageHeader() {
           {siteConfig.tagline}
         </p>
         <div className={styles.buttons}>
-          <Link className="button button--secondary button--lg" to="/docs">
-            <Translate id="homepage.getStarted">Get Started</Translate> 🚀
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs"
+            style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem'}}>
+            <Translate id="homepage.getStarted">Get Started</Translate>
+            <ArrowRightIcon size={20} />
           </Link>
           <Link
             className="button button--outline button--secondary button--lg"
-            to="https://github.com/SuperMarioYL/Bison">
-            GitHub ⭐
+            to="https://github.com/SuperMarioYL/Bison"
+            style={{display: 'inline-flex', alignItems: 'center', gap: '0.5rem'}}>
+            <GithubIcon size={20} />
+            GitHub
           </Link>
         </div>
       </div>
@@ -80,6 +88,7 @@ export default function Home(): ReactNode {
       <HomepageHeader />
       <main>
         <StatsSection />
+        <ProductShowcase />
         <HomepageFeatures />
         <ArchitectureDiagram />
         <UseCases />

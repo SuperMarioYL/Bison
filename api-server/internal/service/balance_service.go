@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/retry"
 
 	"github.com/bison/api-server/internal/k8s"
 	"github.com/bison/api-server/pkg/logger"
@@ -120,7 +121,9 @@ func (s *BalanceService) GetAllBalances(ctx context.Context) ([]*Balance, error)
 	return balances, nil
 }
 
-// Recharge adds balance to a team
+// Recharge adds balance to a team. The read-modify-write is performed under
+// optimistic-concurrency retry so concurrent recharges/deductions on the shared
+// balances ConfigMap cannot silently lose updates.
 func (s *BalanceService) Recharge(ctx context.Context, teamName string, amount float64, operator, remark string) error {
 	logger.Info("Recharging team", "team", teamName, "amount", amount, "operator", operator)
 
@@ -128,15 +131,8 @@ func (s *BalanceService) Recharge(ctx context.Context, teamName string, amount f
 		return fmt.Errorf("recharge amount must be positive")
 	}
 
-	// Get current balance
-	balance, err := s.GetBalance(ctx, teamName)
+	newAmount, err := s.applyBalanceDelta(ctx, teamName, amount)
 	if err != nil {
-		return err
-	}
-
-	// Update balance
-	newAmount := balance.Amount + amount
-	if err := s.updateBalance(ctx, teamName, newAmount); err != nil {
 		return err
 	}
 
@@ -154,24 +150,19 @@ func (s *BalanceService) Recharge(ctx context.Context, teamName string, amount f
 	return s.addRechargeRecord(ctx, teamName, record)
 }
 
-// Deduct deducts balance from a team
-func (s *BalanceService) Deduct(ctx context.Context, teamName string, amount float64, reason string) error {
+// Deduct deducts balance from a team (negative balances are allowed) and returns
+// the balance AFTER the write, so callers do not need a second racy read to decide
+// suspension. The update is conflict-retried for concurrency safety.
+func (s *BalanceService) Deduct(ctx context.Context, teamName string, amount float64, reason string) (float64, error) {
 	logger.Info("Deducting from team", "team", teamName, "amount", amount, "reason", reason)
 
 	if amount <= 0 {
-		return fmt.Errorf("deduction amount must be positive")
+		return 0, fmt.Errorf("deduction amount must be positive")
 	}
 
-	// Get current balance
-	balance, err := s.GetBalance(ctx, teamName)
+	newAmount, err := s.applyBalanceDelta(ctx, teamName, -amount)
 	if err != nil {
-		return err
-	}
-
-	// Update balance (allow negative balance)
-	newAmount := balance.Amount - amount
-	if err := s.updateBalance(ctx, teamName, newAmount); err != nil {
-		return err
+		return 0, err
 	}
 
 	// Record history
@@ -185,7 +176,10 @@ func (s *BalanceService) Deduct(ctx context.Context, teamName string, amount flo
 		Balance:   newAmount,
 	}
 
-	return s.addRechargeRecord(ctx, teamName, record)
+	if err := s.addRechargeRecord(ctx, teamName, record); err != nil {
+		return newAmount, err
+	}
+	return newAmount, nil
 }
 
 // GetRechargeHistory returns recharge/deduction history for a team
@@ -297,18 +291,16 @@ func (s *BalanceService) ProcessAutoRecharge(ctx context.Context) error {
 			continue
 		}
 
-		logger.Info("Executing auto-recharge", "team", teamName, "amount", config.Amount)
-
-		// Get current balance
-		balance, err := s.GetBalance(ctx, teamName)
-		if err != nil {
-			logger.Error("Failed to get balance for auto-recharge", "team", teamName, "error", err)
+		if config.Amount <= 0 {
+			logger.Warn("Skipping auto-recharge with non-positive amount", "team", teamName, "amount", config.Amount)
 			continue
 		}
 
-		// Update balance
-		newAmount := balance.Amount + config.Amount
-		if err := s.updateBalance(ctx, teamName, newAmount); err != nil {
+		logger.Info("Executing auto-recharge", "team", teamName, "amount", config.Amount)
+
+		// Atomically add the recharge amount to the current balance.
+		newAmount, err := s.applyBalanceDelta(ctx, teamName, config.Amount)
+		if err != nil {
 			logger.Error("Failed to update balance for auto-recharge", "team", teamName, "error", err)
 			continue
 		}
@@ -372,64 +364,78 @@ func (s *BalanceService) GetTotalBalance(ctx context.Context) (float64, error) {
 
 // Helper methods
 
-func (s *BalanceService) updateBalance(ctx context.Context, teamName string, amount float64) error {
-	balance := &Balance{
-		TeamName:    teamName,
-		Amount:      amount,
-		LastUpdated: time.Now(),
-	}
+// mutateConfigMap performs an optimistic-concurrency read-modify-write on a Bison
+// ConfigMap. It re-reads the ConfigMap and re-applies mutate on every resourceVersion
+// conflict, so concurrent writers (recharge, billing deduction, auto-recharge,
+// overdue marking) cannot silently lose each other's updates.
+func (s *BalanceService) mutateConfigMap(ctx context.Context, name string, mutate func(cm *corev1.ConfigMap) error) error {
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		cm, err := s.getOrCreateConfigMap(ctx, name)
+		if err != nil {
+			return err
+		}
+		if cm.Data == nil {
+			cm.Data = make(map[string]string)
+		}
+		if err := mutate(cm); err != nil {
+			return err
+		}
+		// Use the raw client so a conflict error is returned unwrapped for RetryOnConflict.
+		return s.k8sClient.UpdateConfigMap(ctx, BisonNamespace, cm)
+	})
+}
 
-	data, err := json.Marshal(balance)
-	if err != nil {
-		return fmt.Errorf("failed to marshal balance: %w", err)
-	}
+// applyBalanceDelta atomically adds delta (negative to deduct) to a team's balance,
+// preserving other persisted fields such as OverdueAt, and returns the new amount.
+func (s *BalanceService) applyBalanceDelta(ctx context.Context, teamName string, delta float64) (float64, error) {
+	var newAmount float64
+	err := s.mutateConfigMap(ctx, BalancesConfigMap, func(cm *corev1.ConfigMap) error {
+		balance := Balance{TeamName: teamName}
+		if existing, ok := cm.Data[teamName]; ok {
+			if err := json.Unmarshal([]byte(existing), &balance); err != nil {
+				return fmt.Errorf("failed to parse balance: %w", err)
+			}
+		}
+		balance.TeamName = teamName
+		balance.Amount += delta
+		balance.LastUpdated = time.Now()
 
-	cm, err := s.getOrCreateConfigMap(ctx, BalancesConfigMap)
-	if err != nil {
-		return err
-	}
-
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
-	cm.Data[teamName] = string(data)
-
-	return s.updateConfigMap(ctx, cm)
+		data, err := json.Marshal(&balance)
+		if err != nil {
+			return fmt.Errorf("failed to marshal balance: %w", err)
+		}
+		cm.Data[teamName] = string(data)
+		newAmount = balance.Amount
+		return nil
+	})
+	return newAmount, err
 }
 
 func (s *BalanceService) addRechargeRecord(ctx context.Context, teamName string, record *RechargeRecord) error {
-	cm, err := s.getOrCreateConfigMap(ctx, RechargeHistoryConfigMap)
-	if err != nil {
-		return err
-	}
-
-	var records []*RechargeRecord
-	if data, ok := cm.Data[teamName]; ok {
-		if err := json.Unmarshal([]byte(data), &records); err != nil {
-			logger.Warn("Failed to unmarshal existing history, starting fresh", "team", teamName)
-			records = []*RechargeRecord{}
+	return s.mutateConfigMap(ctx, RechargeHistoryConfigMap, func(cm *corev1.ConfigMap) error {
+		var records []*RechargeRecord
+		if data, ok := cm.Data[teamName]; ok {
+			if err := json.Unmarshal([]byte(data), &records); err != nil {
+				logger.Warn("Failed to unmarshal existing history, starting fresh", "team", teamName)
+				records = []*RechargeRecord{}
+			}
 		}
-	}
 
-	// Add new record
-	records = append(records, record)
+		// Add new record
+		records = append(records, record)
 
-	// Keep only last 1000 records
-	if len(records) > 1000 {
-		records = records[len(records)-1000:]
-	}
+		// Keep only last 1000 records
+		if len(records) > 1000 {
+			records = records[len(records)-1000:]
+		}
 
-	data, err := json.Marshal(records)
-	if err != nil {
-		return fmt.Errorf("failed to marshal history: %w", err)
-	}
-
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
-	cm.Data[teamName] = string(data)
-
-	return s.updateConfigMap(ctx, cm)
+		data, err := json.Marshal(records)
+		if err != nil {
+			return fmt.Errorf("failed to marshal history: %w", err)
+		}
+		cm.Data[teamName] = string(data)
+		return nil
+	})
 }
 
 func (s *BalanceService) getOrCreateConfigMap(ctx context.Context, name string) (*corev1.ConfigMap, error) {
@@ -534,30 +540,27 @@ func (s *BalanceService) CalculateDailyConsumption(ctx context.Context, teamName
 	return totalDeductions / daysWithData, nil
 }
 
-// SetOverdueAt records when a team first went into negative balance
+// SetOverdueAt records (or clears) when a team first went into negative balance.
+// The update is conflict-retried and preserves the current amount, so it cannot
+// clobber a concurrent deduction/recharge.
 func (s *BalanceService) SetOverdueAt(ctx context.Context, teamName string, overdueAt *time.Time) error {
-	balance, err := s.GetBalance(ctx, teamName)
-	if err != nil {
-		return err
-	}
+	return s.mutateConfigMap(ctx, BalancesConfigMap, func(cm *corev1.ConfigMap) error {
+		balance := Balance{TeamName: teamName}
+		if existing, ok := cm.Data[teamName]; ok {
+			if err := json.Unmarshal([]byte(existing), &balance); err != nil {
+				return fmt.Errorf("failed to parse balance: %w", err)
+			}
+		}
+		balance.TeamName = teamName
+		balance.OverdueAt = overdueAt
 
-	balance.OverdueAt = overdueAt
-	data, err := json.Marshal(balance)
-	if err != nil {
-		return fmt.Errorf("failed to marshal balance: %w", err)
-	}
-
-	cm, err := s.getOrCreateConfigMap(ctx, BalancesConfigMap)
-	if err != nil {
-		return err
-	}
-
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
-	cm.Data[teamName] = string(data)
-
-	return s.updateConfigMap(ctx, cm)
+		data, err := json.Marshal(&balance)
+		if err != nil {
+			return fmt.Errorf("failed to marshal balance: %w", err)
+		}
+		cm.Data[teamName] = string(data)
+		return nil
+	})
 }
 
 // GetBalanceWithEstimate returns the balance with consumption and estimated overdue time calculated
