@@ -36,6 +36,13 @@ type Config struct {
 	LeaderElectionEnabled bool
 }
 
+// Built-in development defaults that MUST NOT be used in production once auth is
+// enabled — startup refuses to proceed if they are left unchanged.
+const (
+	defaultAdminPassword = "admin"
+	defaultJWTSecret     = "bison-secret-key-change-in-production"
+)
+
 // Load reads configuration from environment variables
 func Load() (*Config, error) {
 	cfg := &Config{
@@ -43,8 +50,8 @@ func Load() (*Config, error) {
 		Mode:                  "release",
 		AuthEnabled:           false,
 		AdminUsername:         "admin",
-		AdminPassword:         "admin",
-		JWTSecret:             "bison-secret-key-change-in-production",
+		AdminPassword:         defaultAdminPassword,
+		JWTSecret:             defaultJWTSecret,
 		OpenCostURL:           "",
 		PrometheusURL:         "",
 		CapsuleEnabled:        true,
@@ -102,5 +109,25 @@ func Load() (*Config, error) {
 		}
 	}
 
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
+
 	return cfg, nil
+}
+
+// validate refuses to start with insecure defaults once authentication is enabled,
+// so a production deployment cannot accidentally run with the public default JWT
+// signing key or the well-known "admin" password.
+func (c *Config) validate() error {
+	if !c.AuthEnabled {
+		return nil
+	}
+	if c.JWTSecret == "" || c.JWTSecret == defaultJWTSecret {
+		return fmt.Errorf("refusing to start: JWT_SECRET must be set to a non-default value when AUTH_ENABLED=true")
+	}
+	if c.AdminPassword == "" || c.AdminPassword == defaultAdminPassword {
+		return fmt.Errorf("refusing to start: ADMIN_PASSWORD must be set to a non-default value when AUTH_ENABLED=true")
+	}
+	return nil
 }
