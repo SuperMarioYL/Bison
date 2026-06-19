@@ -5,6 +5,18 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.21] - 2026-06-19
+
+### Added — Release test/lint gate
+
+- The release workflow now runs a **Test & Lint Gate** before anything is built or published: `go vet`, `gofmt` check, `go build`, `go test -race` (with coverage in the job summary), plus web `npm ci` / lint / `vitest run` / build. `prepare` (and the whole publish chain) `needs` this gate, so broken code can no longer be tagged into a public release.
+
+### Fixed — Reproducible web build
+
+- Declared `tslib` as an explicit dependency: `echarts-for-react` imports it but doesn't declare it, so it was a phantom dependency previously satisfied only by the removed `@ant-design/pro-components`. Clean installs (`npm ci`) now build reliably.
+- Synced `package-lock.json` with `package.json` (removed stale `pro-components`, added `tslib`) so `npm ci` works.
+- Applied `gofmt` across the api-server (formatting only).
+
 ## [0.0.20] - 2026-06-19
 
 ### Changed — OpenCost query caching

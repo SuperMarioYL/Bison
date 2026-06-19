@@ -23,21 +23,21 @@ var AllSections = []string{SectionBilling, SectionAlerts, SectionResources, Sect
 
 // ExportConfig represents the full export file structure
 type ExportConfig struct {
-	Version    string                 `json:"version"`
-	ExportedAt time.Time             `json:"exportedAt"`
-	ExportedBy string                 `json:"exportedBy"`
+	Version    string                     `json:"version"`
+	ExportedAt time.Time                  `json:"exportedAt"`
+	ExportedBy string                     `json:"exportedBy"`
 	Sections   map[string]json.RawMessage `json:"sections"`
 }
 
 // SectionPreview holds diff info for one config section
 type SectionPreview struct {
-	Present          bool                              `json:"present"`
-	Valid            bool                              `json:"valid"`
-	HasSensitiveData bool                              `json:"hasSensitiveData"`
-	Changes          map[string]*FieldChange           `json:"changes,omitempty"`
-	Summary          *ResourceSummary                  `json:"summary,omitempty"`
-	Warnings         []string                          `json:"warnings,omitempty"`
-	Errors           []string                          `json:"errors,omitempty"`
+	Present          bool                    `json:"present"`
+	Valid            bool                    `json:"valid"`
+	HasSensitiveData bool                    `json:"hasSensitiveData"`
+	Changes          map[string]*FieldChange `json:"changes,omitempty"`
+	Summary          *ResourceSummary        `json:"summary,omitempty"`
+	Warnings         []string                `json:"warnings,omitempty"`
+	Errors           []string                `json:"errors,omitempty"`
 }
 
 // FieldChange represents a single field change

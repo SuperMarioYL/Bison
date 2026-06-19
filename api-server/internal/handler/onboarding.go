@@ -11,15 +11,15 @@ import (
 
 // OnboardingHandler handles node onboarding requests
 type OnboardingHandler struct {
-	onboardingSvc   *service.OnboardingService
-	initScriptSvc   *service.InitScriptService
+	onboardingSvc *service.OnboardingService
+	initScriptSvc *service.InitScriptService
 }
 
 // NewOnboardingHandler creates a new OnboardingHandler
 func NewOnboardingHandler(onboardingSvc *service.OnboardingService, initScriptSvc *service.InitScriptService) *OnboardingHandler {
 	return &OnboardingHandler{
-		onboardingSvc:   onboardingSvc,
-		initScriptSvc:   initScriptSvc,
+		onboardingSvc: onboardingSvc,
+		initScriptSvc: initScriptSvc,
 	}
 }
 
@@ -96,10 +96,10 @@ func (h *OnboardingHandler) GetControlPlaneConfig(c *gin.Context) {
 
 	// Mask sensitive data
 	response := gin.H{
-		"host":       config.Host,
-		"sshPort":    config.SSHPort,
-		"sshUser":    config.SSHUser,
-		"authMethod": config.AuthMethod,
+		"host":          config.Host,
+		"sshPort":       config.SSHPort,
+		"sshUser":       config.SSHUser,
+		"authMethod":    config.AuthMethod,
 		"hasPassword":   config.Password != "",
 		"hasPrivateKey": config.PrivateKey != "",
 	}
@@ -274,4 +274,3 @@ func (h *OnboardingHandler) ReorderInitScripts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Script groups reordered"})
 }
-

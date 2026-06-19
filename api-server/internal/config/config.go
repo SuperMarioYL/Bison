@@ -39,12 +39,12 @@ type Config struct {
 // Load reads configuration from environment variables
 func Load() (*Config, error) {
 	cfg := &Config{
-		Port:          8080,
-		Mode:          "release",
-		AuthEnabled:   false,
-		AdminUsername: "admin",
-		AdminPassword: "admin",
-		JWTSecret:     "bison-secret-key-change-in-production",
+		Port:                  8080,
+		Mode:                  "release",
+		AuthEnabled:           false,
+		AdminUsername:         "admin",
+		AdminPassword:         "admin",
+		JWTSecret:             "bison-secret-key-change-in-production",
 		OpenCostURL:           "",
 		PrometheusURL:         "",
 		CapsuleEnabled:        true,
