@@ -5,6 +5,13 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.27] - 2026-06-19
+
+### Added — Supply-chain hygiene
+
+- Added `.github/dependabot.yml` to track updates weekly for Go modules, the web-ui and website npm trees, GitHub Actions, and the Docker base images.
+- Added `.dockerignore` for api-server and web-ui so build contexts exclude `.git`, `node_modules`, `dist`, coverage and editor files — smaller, more reproducible image builds.
+
 ## [0.0.26] - 2026-06-19
 
 ### Added — Availability & network hardening templates (opt-in)
