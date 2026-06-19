@@ -121,7 +121,7 @@ func main() {
 	router := gin.New()
 	router.Use(middleware.Recovery())
 	router.Use(middleware.Logger())
-	router.Use(corsMiddleware())
+	router.Use(corsMiddleware(cfg.CORSAllowedOrigins))
 
 	// Health check endpoints
 	router.GET("/healthz", func(c *gin.Context) {
@@ -348,9 +348,31 @@ func main() {
 	logger.Info("Server stopped gracefully")
 }
 
-func corsMiddleware() gin.HandlerFunc {
+func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
+	// Build an O(1) lookup; "*" or an empty list means allow any origin.
+	allowAny := len(allowedOrigins) == 0
+	allowSet := make(map[string]struct{}, len(allowedOrigins))
+	for _, o := range allowedOrigins {
+		if o == "*" {
+			allowAny = true
+		}
+		allowSet[o] = struct{}{}
+	}
+
 	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		origin := c.GetHeader("Origin")
+
+		if allowAny {
+			c.Header("Access-Control-Allow-Origin", "*")
+		} else if _, ok := allowSet[origin]; ok && origin != "" {
+			// Echo the specific allowed origin and allow credentialed requests.
+			c.Header("Access-Control-Allow-Origin", origin)
+			c.Header("Access-Control-Allow-Credentials", "true")
+			c.Header("Vary", "Origin")
+		}
+		// If the origin is not allowed, no Allow-Origin header is set and the
+		// browser blocks the cross-origin response.
+
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
