@@ -24,6 +24,11 @@ type Config struct {
 
 	// Feature toggles
 	CapsuleEnabled bool
+
+	// LeaderElectionEnabled gates the singleton scheduler behind a Kubernetes
+	// lease so it runs on exactly one replica. Disable for single-replica or
+	// out-of-cluster development.
+	LeaderElectionEnabled bool
 }
 
 // Load reads configuration from environment variables
@@ -35,9 +40,10 @@ func Load() (*Config, error) {
 		AdminUsername: "admin",
 		AdminPassword: "admin",
 		JWTSecret:     "bison-secret-key-change-in-production",
-		OpenCostURL:    "",
-		PrometheusURL:  "",
-		CapsuleEnabled: true,
+		OpenCostURL:           "",
+		PrometheusURL:         "",
+		CapsuleEnabled:        true,
+		LeaderElectionEnabled: true,
 	}
 
 	if port := os.Getenv("PORT"); port != "" {
@@ -77,6 +83,9 @@ func Load() (*Config, error) {
 	// Feature toggles
 	if capsuleEnabled := os.Getenv("CAPSULE_ENABLED"); capsuleEnabled == "false" {
 		cfg.CapsuleEnabled = false
+	}
+	if le := os.Getenv("LEADER_ELECTION_ENABLED"); le == "false" {
+		cfg.LeaderElectionEnabled = false
 	}
 
 	return cfg, nil

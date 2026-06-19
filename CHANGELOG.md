@@ -5,6 +5,15 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.13] - 2026-06-19
+
+### Added — Scheduler leader election
+
+- **Lease-based leader election** (`internal/leader`) guards the singleton billing/auto-recharge/alert scheduler so it runs on exactly one api-server replica at a time. This is the root fix for the duplicate-billing risk; `apiServer.replicaCount` is restored to `2` for HA.
+- The scheduler is now **re-startable** (clean `Start`/`Stop` on leadership changes), with new tests covering restart and stop-before-start safety.
+- Toggle via `LEADER_ELECTION_ENABLED` (default on); disable for single-replica / local dev.
+- Added `coordination.k8s.io/leases` (get/create/update) to the api-server RBAC.
+
 ## [0.0.12] - 2026-06-19
 
 ### Fixed — Billing correctness & concurrency
