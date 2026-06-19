@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { login, getAuthStatus } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getApiErrorMessage } from '../../utils/error';
 import './Login.css';
 
 const { Title, Text } = Typography;
@@ -52,7 +53,7 @@ const Login: React.FC = () => {
       navigate('/dashboard', { replace: true });
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
-      message.error(err.response?.data?.error || '登录失败，请检查用户名和密码');
+      message.error(getApiErrorMessage(err, '登录失败，请检查用户名和密码'));
     } finally {
       setLoading(false);
     }

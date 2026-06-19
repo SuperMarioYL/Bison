@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.23] - 2026-06-19
+
+### Changed — Centralized frontend error handling
+
+- Replaced the 13 duplicated `err.response?.data?.error || err.message` extraction sites (across ClusterNodes, TeamDetail, TeamCreate, Login, ResourceConfig) with the shared `getApiErrorMessage` helper. The backend error envelope shape now lives in one place, so future changes touch one file instead of thirteen.
+
 ## [0.0.22] - 2026-06-19
 
 ### Security — Refuse insecure defaults at startup

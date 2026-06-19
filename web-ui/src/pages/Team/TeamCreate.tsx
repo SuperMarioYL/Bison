@@ -1,5 +1,6 @@
 import { CloudServerOutlined, DeleteOutlined, PlusOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getApiErrorMessage } from '../../utils/error';
 import {
   Alert,
   Button, Card,
@@ -80,7 +81,7 @@ const TeamCreate: React.FC = () => {
       navigate('/teams');
     },
     onError: (error: any) => {
-      message.error(`创建失败: ${error.response?.data?.error || error.message}`);
+      message.error(`创建失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 
