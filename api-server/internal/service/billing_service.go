@@ -8,7 +8,9 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/retry"
 
 	"github.com/bison/api-server/internal/k8s"
 	"github.com/bison/api-server/internal/opencost"
@@ -17,6 +19,10 @@ import (
 
 const (
 	BillingConfigMap = "bison-billing-config"
+	// lastBilledKey stores (in the billing ConfigMap) the RFC3339 timestamp of the
+	// last successful billing run, so billing is not duplicated when the ticker
+	// fires more often than the configured interval or after a process restart.
+	lastBilledKey = "lastBilledAt"
 )
 
 // BillingConfig represents the billing configuration
@@ -149,6 +155,31 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 		return nil
 	}
 
+	// Enforce the configured billing interval regardless of how often the
+	// scheduler ticks, and survive restarts, by gating on a persisted timestamp.
+	interval := config.Interval
+	if interval <= 0 {
+		interval = 1
+	}
+	minGap := time.Duration(interval) * time.Hour
+	now := time.Now()
+	lastBilled, _ := s.getLastBilled(ctx)
+	if lastBilled.IsZero() {
+		// First run on a fresh deployment: establish a baseline instead of billing
+		// an unknown historical window.
+		if err := s.setLastBilled(ctx, now); err != nil {
+			logger.Warn("Failed to initialize billing baseline", "error", err)
+		}
+		logger.Info("Billing baseline initialized; skipping first cycle")
+		return nil
+	}
+	// Tolerate scheduler jitter: require ~95% of the interval to have elapsed.
+	if now.Sub(lastBilled) < time.Duration(float64(minGap)*0.95) {
+		logger.Debug("Skipping billing: interval not yet elapsed",
+			"sinceLastBilled", now.Sub(lastBilled).String(), "interval", minGap.String())
+		return nil
+	}
+
 	// Get usage from OpenCost
 	if s.opencostClient == nil || !s.opencostClient.IsEnabled() {
 		logger.Warn("OpenCost not available, skipping billing")
@@ -246,7 +277,65 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 		}
 	}
 
+	// Record successful billing time so the next cycle bills the correct window.
+	if err := s.setLastBilled(ctx, now); err != nil {
+		logger.Error("Failed to update last-billed timestamp", "error", err)
+	}
+
 	return nil
+}
+
+// getLastBilled returns the timestamp of the last successful billing run, or the
+// zero time if none has been recorded yet.
+func (s *BillingService) getLastBilled(ctx context.Context) (time.Time, error) {
+	cm, err := s.k8sClient.GetConfigMap(ctx, BisonNamespace, BillingConfigMap)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return time.Time{}, nil
+		}
+		return time.Time{}, err
+	}
+	v, ok := cm.Data[lastBilledKey]
+	if !ok || v == "" {
+		return time.Time{}, nil
+	}
+	t, err := time.Parse(time.RFC3339, v)
+	if err != nil {
+		logger.Warn("Invalid lastBilledAt timestamp, treating as unset", "value", v)
+		return time.Time{}, nil
+	}
+	return t, nil
+}
+
+// setLastBilled persists the last successful billing time, using optimistic
+// concurrency so it cannot clobber a concurrent config update.
+func (s *BillingService) setLastBilled(ctx context.Context, t time.Time) error {
+	value := t.UTC().Format(time.RFC3339)
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		cm, err := s.k8sClient.GetConfigMap(ctx, BisonNamespace, BillingConfigMap)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				cm = &corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      BillingConfigMap,
+						Namespace: BisonNamespace,
+						Labels: map[string]string{
+							"app.kubernetes.io/name":      "bison",
+							"app.kubernetes.io/component": "billing",
+						},
+					},
+					Data: map[string]string{lastBilledKey: value},
+				}
+				return s.k8sClient.CreateConfigMap(ctx, BisonNamespace, cm)
+			}
+			return err
+		}
+		if cm.Data == nil {
+			cm.Data = make(map[string]string)
+		}
+		cm.Data[lastBilledKey] = value
+		return s.k8sClient.UpdateConfigMap(ctx, BisonNamespace, cm)
+	})
 }
 
 // isGracePeriodExpired checks if the grace period has expired for a team

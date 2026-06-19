@@ -85,6 +85,37 @@ func TestCalculateCostDisabledReturnsTotalCost(t *testing.T) {
 	}
 }
 
+func TestLastBilledRoundTrip(t *testing.T) {
+	svc := newTestBillingService([]ResourceDefinition{})
+	ctx := context.Background()
+
+	// No timestamp yet -> zero time.
+	if ts, err := svc.getLastBilled(ctx); err != nil || !ts.IsZero() {
+		t.Fatalf("expected zero time initially, got %v err=%v", ts, err)
+	}
+
+	now := time.Now().UTC().Truncate(time.Second)
+	if err := svc.setLastBilled(ctx, now); err != nil {
+		t.Fatalf("setLastBilled: %v", err)
+	}
+	got, err := svc.getLastBilled(ctx)
+	if err != nil {
+		t.Fatalf("getLastBilled: %v", err)
+	}
+	if !got.Equal(now) {
+		t.Fatalf("round-trip mismatch: got %v want %v", got, now)
+	}
+
+	// Overwrite works.
+	later := now.Add(2 * time.Hour)
+	if err := svc.setLastBilled(ctx, later); err != nil {
+		t.Fatalf("setLastBilled (overwrite): %v", err)
+	}
+	if got, _ := svc.getLastBilled(ctx); !got.Equal(later) {
+		t.Fatalf("overwrite mismatch: got %v want %v", got, later)
+	}
+}
+
 func TestIsGracePeriodExpired(t *testing.T) {
 	s := &BillingService{}
 	recent := time.Now().Add(-1 * time.Hour)
