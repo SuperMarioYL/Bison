@@ -16,6 +16,7 @@ import (
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
+	cache      *allocCache
 }
 
 // NewClient creates a new OpenCost client
@@ -25,6 +26,9 @@ func NewClient(baseURL string) *Client {
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
+		// Short TTL: dashboard/billing repeatedly query the same windows; 30s keeps
+		// data near-real-time while collapsing duplicate concurrent queries.
+		cache: newAllocCache(30 * time.Second),
 	}
 }
 
@@ -109,12 +113,20 @@ func (c *Client) GetAllocationForNamespace(ctx context.Context, window, namespac
 	return c.getAllocation(ctx, window, "namespace", fmt.Sprintf("namespace:\"%s\"", namespace))
 }
 
-// getAllocation is the internal method to query allocations
+// getAllocation queries allocations through a short-TTL coalescing cache so that
+// concurrent dashboard/billing requests for the same window hit OpenCost once.
 func (c *Client) getAllocation(ctx context.Context, window, aggregate, filter string) ([]Allocation, error) {
 	if !c.IsEnabled() {
 		return nil, fmt.Errorf("opencost not configured")
 	}
+	key := window + "|" + aggregate + "|" + filter
+	return c.cache.do(key, func() ([]Allocation, error) {
+		return c.fetchAllocation(ctx, window, aggregate, filter)
+	})
+}
 
+// fetchAllocation performs the actual OpenCost HTTP query (uncached).
+func (c *Client) fetchAllocation(ctx context.Context, window, aggregate, filter string) ([]Allocation, error) {
 	// Build URL
 	params := url.Values{}
 	params.Set("window", window)

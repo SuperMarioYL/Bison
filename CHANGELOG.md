@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.20] - 2026-06-19
+
+### Changed — OpenCost query caching
+
+- The OpenCost client now wraps allocation queries in a 30s TTL cache that also **coalesces concurrent identical queries** (same window/aggregate/filter), so a burst of dashboard/billing requests hits OpenCost once instead of once per caller. Errors are not cached (next caller retries). Self-contained implementation — no new dependency; covered by race-tested unit tests.
+
 ## [0.0.19] - 2026-06-19
 
 ### Changed — Backend performance
