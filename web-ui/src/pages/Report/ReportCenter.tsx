@@ -13,6 +13,7 @@ import {
   getSummaryReport, 
   exportSummaryReport,
 } from '../../services/api';
+import PageHeader from '../../components/PageHeader';
 
 const ReportCenter: React.FC = () => {
   const [window, setWindow] = useState('30d');
@@ -89,26 +90,28 @@ const ReportCenter: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>
-          <BarChartOutlined style={{ marginRight: 8 }} />
-          报表中心
-        </h2>
-        <Space>
-          <Select
-            value={window}
-            onChange={setWindow}
-            style={{ width: 120 }}
-          >
-            <Select.Option value="7d">近 7 天</Select.Option>
-            <Select.Option value="30d">近 30 天</Select.Option>
-            <Select.Option value="90d">近 90 天</Select.Option>
-          </Select>
-          <Button icon={<DownloadOutlined />} onClick={handleExport}>
-            导出报表
-          </Button>
-        </Space>
-      </div>
+      <PageHeader
+        icon={<BarChartOutlined />}
+        gradient="var(--gradient-green)"
+        title="报表中心"
+        subtitle="按时间区间汇总团队与项目的成本消耗"
+        extra={
+          <Space>
+            <Select
+              value={window}
+              onChange={setWindow}
+              style={{ width: 120 }}
+            >
+              <Select.Option value="7d">近 7 天</Select.Option>
+              <Select.Option value="30d">近 30 天</Select.Option>
+              <Select.Option value="90d">近 90 天</Select.Option>
+            </Select>
+            <Button icon={<DownloadOutlined />} onClick={handleExport}>
+              导出报表
+            </Button>
+          </Space>
+        }
+      />
 
       <Row gutter={[16, 16]}>
         <Col span={6}>

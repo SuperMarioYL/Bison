@@ -4,8 +4,9 @@ import { PlusOutlined, ProjectOutlined, EditOutlined, DeleteOutlined, Deployment
 import { useQuery, useQueryClient, useMutation, useQueries } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getProjects, deleteProject, getTeams, getProjectWorkloadSummary, getProjectUsage, Project, WorkloadSummary, ProjectUsage } from '../../services/api';
+import PageHeader from '../../components/PageHeader';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ProjectList: React.FC = () => {
   const navigate = useNavigate();
@@ -254,37 +255,42 @@ const ProjectList: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2}>项目管理</Title>
-        <Space>
-          <Select
-            placeholder="按团队筛选"
-            allowClear
-            style={{ width: 200 }}
-            value={teamFilter}
-            onChange={(value) => {
-              if (value) {
-                setSearchParams({ team: value });
-              } else {
-                setSearchParams({});
-              }
-            }}
-          >
-            {teamsData?.items?.map(team => (
-              <Select.Option key={team.name} value={team.name}>
-                {team.displayName || team.name}
-              </Select.Option>
-            ))}
-          </Select>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/projects/create')}
-          >
-            创建项目
-          </Button>
-        </Space>
-      </div>
+      <PageHeader
+        icon={<ProjectOutlined />}
+        gradient="var(--gradient-teal)"
+        title="项目管理"
+        subtitle="按团队组织的命名空间项目与资源用量"
+        extra={
+          <Space>
+            <Select
+              placeholder="按团队筛选"
+              allowClear
+              style={{ width: 200 }}
+              value={teamFilter}
+              onChange={(value) => {
+                if (value) {
+                  setSearchParams({ team: value });
+                } else {
+                  setSearchParams({});
+                }
+              }}
+            >
+              {teamsData?.items?.map(team => (
+                <Select.Option key={team.name} value={team.name}>
+                  {team.displayName || team.name}
+                </Select.Option>
+              ))}
+            </Select>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/projects/create')}
+            >
+              创建项目
+            </Button>
+          </Space>
+        }
+      />
 
       <Card className="glass-card">
         {projectsData?.items && projectsData.items.length > 0 ? (

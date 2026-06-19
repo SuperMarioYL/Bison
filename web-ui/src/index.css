@@ -106,12 +106,18 @@ a:hover {
   border-radius: 16px !important;
   border: 1px solid var(--border) !important;
   background: var(--bg-card) !important;
-  box-shadow: var(--shadow-sm) !important;
-  transition: all 0.3s ease !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease !important;
 }
 
 .ant-card:hover {
   box-shadow: var(--shadow-md) !important;
+}
+
+/* Clickable cards get a tactile lift */
+.ant-card-hoverable:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent) !important;
 }
 
 .ant-card-head {
@@ -483,6 +489,331 @@ textarea.ant-input:focus,
 .ant-spin-dot-item {
   background: var(--accent) !important;
 }
+
+/* ===========================================================================
+   Design system components — PageHeader, StatCard, charts, animations
+   =========================================================================== */
+
+/* Page header ------------------------------------------------------------- */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.page-header-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px -6px rgba(10, 132, 255, 0.5);
+}
+
+.page-header-text {
+  min-width: 0;
+}
+
+.page-header-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.page-header-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.page-header-extra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Stat card --------------------------------------------------------------- */
+.stat-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--stat-gradient, var(--gradient-blue));
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.stat-card-clickable {
+  cursor: pointer;
+}
+
+.stat-card-clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.35);
+  position: relative;
+  z-index: 1;
+}
+
+.stat-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.stat-card-suffix {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.stat-card-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Donut chart ------------------------------------------------------------- */
+.donut-chart {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.donut-ring {
+  position: relative;
+  flex-shrink: 0;
+  animation: fadeInScale 0.5s ease both;
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.donut-total {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.donut-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.donut-legend {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.donut-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.donut-name {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.donut-val {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.donut-pct {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  width: 38px;
+  text-align: right;
+}
+
+/* Area / line chart ------------------------------------------------------- */
+.area-chart {
+  position: relative;
+  width: 100%;
+}
+
+.area-svg {
+  display: block;
+  overflow: visible;
+}
+
+.area-xlabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.area-cursor {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: var(--border);
+  transform: translateX(-0.5px);
+  pointer-events: none;
+}
+
+.area-dot {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 0 1px var(--border), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.area-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 14px));
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 11px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 2;
+}
+
+.area-tt-date {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.area-tt-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Entrance animations ----------------------------------------------------- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dashboard .ant-row {
+  animation: fadeInUp 0.45s ease both;
+}
+
+.dashboard .ant-row:nth-of-type(2) { animation-delay: 0.05s; }
+.dashboard .ant-row:nth-of-type(3) { animation-delay: 0.10s; }
+.dashboard .ant-row:nth-of-type(4) { animation-delay: 0.15s; }
+.dashboard .ant-row:nth-of-type(5) { animation-delay: 0.20s; }
 
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {

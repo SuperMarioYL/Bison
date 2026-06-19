@@ -4,6 +4,7 @@ import { UserOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutline
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getUsers, createUser, deleteUser, setUserStatus, getTeams, User, Team } from '../../services/api';
+import PageHeader from '../../components/PageHeader';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
@@ -163,15 +164,17 @@ const UserList: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>
-          <UserOutlined style={{ marginRight: 8 }} />
-          用户管理
-        </h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-          创建用户
-        </Button>
-      </div>
+      <PageHeader
+        icon={<UserOutlined />}
+        gradient="var(--gradient-blue)"
+        title="用户管理"
+        subtitle="管理平台用户、状态与所属团队"
+        extra={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+            创建用户
+          </Button>
+        }
+      />
 
       <Card>
         <div style={{ marginBottom: 16, display: 'flex', gap: 16 }}>

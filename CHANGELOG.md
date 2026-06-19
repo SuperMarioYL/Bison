@@ -5,6 +5,16 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.28] - 2026-06-19
+
+### Changed — Scheduler run timeouts
+
+- Each scheduled run is now bounded by a per-execution `context` timeout (billing 10m, auto-recharge 5m, alert 3m), so a hung Kubernetes/OpenCost call can no longer block a task loop indefinitely; the run is recorded as failed and retried on the next tick.
+
+### Added — UI component refresh
+
+- New shared `PageHeader`, `StatCard`, and `charts/` (`AreaChart`, `DonutChart`) components, integrated across the Dashboard, Cluster, Team, Project, User, Report, Audit, and Settings pages, with refreshed `theme.css` / layout styling.
+
 ## [0.0.27] - 2026-06-19
 
 ### Added — Supply-chain hygiene

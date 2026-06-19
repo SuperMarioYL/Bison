@@ -149,6 +149,10 @@ func (s *Scheduler) runBillingTask(ctx context.Context) {
 }
 
 func (s *Scheduler) executeBillingTask(ctx context.Context) {
+	// Bound each run so a hung K8s/OpenCost call cannot block the billing loop forever.
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+
 	exec := service.TaskExecution{
 		TaskName:  "billing",
 		StartTime: time.Now(),
@@ -194,6 +198,9 @@ func (s *Scheduler) runAutoRechargeTask(ctx context.Context) {
 }
 
 func (s *Scheduler) executeAutoRechargeTask(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	exec := service.TaskExecution{
 		TaskName:  "auto_recharge",
 		StartTime: time.Now(),
@@ -239,6 +246,9 @@ func (s *Scheduler) runAlertTask(ctx context.Context) {
 }
 
 func (s *Scheduler) executeAlertTask(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+	defer cancel()
+
 	exec := service.TaskExecution{
 		TaskName:  "alert_check",
 		StartTime: time.Now(),

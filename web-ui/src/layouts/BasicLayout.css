@@ -212,16 +212,14 @@
 
 .content-wrapper {
   min-height: calc(100vh - 112px);
-  padding: 24px;
-  border-radius: 16px;
 }
 
+/* Content sits directly on the page background so cards read as distinct,
+   elevated surfaces instead of being flattened inside an outer card. */
 .glass-content {
-  background: var(--bg-card);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* Dark theme specific adjustments */
@@ -231,10 +229,6 @@
 
 .app-layout.dark .glass-header {
   background: rgba(28, 28, 30, 0.72) !important;
-}
-
-.app-layout.dark .glass-content {
-  background: rgba(44, 44, 46, 0.6) !important;
 }
 
 .app-layout.dark .app-menu .ant-menu-item-selected {

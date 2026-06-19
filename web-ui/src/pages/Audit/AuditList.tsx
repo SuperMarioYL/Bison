@@ -3,6 +3,7 @@ import { Table, Card, Tag, Space, DatePicker, Select, Input, Button, Tooltip } f
 import { AuditOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { getAuditLogs, AuditFilter } from '../../services/api';
+import PageHeader from '../../components/PageHeader';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -110,15 +111,17 @@ const AuditList: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>
-          <AuditOutlined style={{ marginRight: 8 }} />
-          审计日志
-        </h2>
-        <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
-          刷新
-        </Button>
-      </div>
+      <PageHeader
+        icon={<AuditOutlined />}
+        gradient="var(--gradient-orange)"
+        title="审计日志"
+        subtitle="追踪平台上的关键操作与变更记录"
+        extra={
+          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
+            刷新
+          </Button>
+        }
+      />
 
       <Card style={{ marginBottom: 16 }}>
         <Space wrap>

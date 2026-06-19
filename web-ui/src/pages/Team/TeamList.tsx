@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Table, Card, Button, Tag, Space, Typography, message, Popconfirm, Empty, Spin, Tooltip } from 'antd';
-import { PlusOutlined, TeamOutlined, EditOutlined, DeleteOutlined, CloudServerOutlined, ShareAltOutlined, WalletOutlined, WarningOutlined } from '@ant-design/icons';
+import { PlusOutlined, TeamOutlined, EditOutlined, DeleteOutlined, CloudServerOutlined, ShareAltOutlined, WalletOutlined, WarningOutlined, ApartmentOutlined } from '@ant-design/icons';
 import { useQuery, useQueryClient, useMutation, useQueries } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getTeams, deleteTeam, getTeamBalance, Team, OwnerRef, TeamMode, Balance, getBillingConfig } from '../../services/api';
 import { ResourceQuotaUsageDisplay } from '../../components/ResourceQuotaInput';
+import PageHeader from '../../components/PageHeader';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
@@ -12,7 +13,7 @@ import 'dayjs/locale/zh-cn';
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const TeamList: React.FC = () => {
   const navigate = useNavigate();
@@ -299,16 +300,21 @@ const TeamList: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={2}>团队管理</Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/teams/create')}
-        >
-          创建团队
-        </Button>
-      </div>
+      <PageHeader
+        icon={<ApartmentOutlined />}
+        gradient="var(--gradient-purple)"
+        title="团队管理"
+        subtitle="管理多租户团队、资源配额与计费余额"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/teams/create')}
+          >
+            创建团队
+          </Button>
+        }
+      />
 
       <Card className="glass-card">
         {teamsData?.items && teamsData.items.length > 0 ? (

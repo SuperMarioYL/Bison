@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tabs, Typography } from 'antd';
+import { Tabs } from 'antd';
 import {
   SettingOutlined,
   DollarOutlined,
@@ -21,8 +21,7 @@ import ControlPlaneConfig from './ControlPlaneConfig';
 import NodeInitConfig from './NodeInitConfig';
 import ConfigTransfer from './ConfigTransfer';
 import { useFeatures } from '../../hooks/useFeatures';
-
-const { Title } = Typography;
+import PageHeader from '../../components/PageHeader';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
@@ -126,10 +125,12 @@ const Settings: React.FC = () => {
 
   return (
     <div>
-      <Title level={2}>
-        <SettingOutlined style={{ marginRight: 8 }} />
-        系统设置
-      </Title>
+      <PageHeader
+        icon={<SettingOutlined />}
+        gradient="var(--gradient-brand)"
+        title="系统设置"
+        subtitle="配置资源、计费、告警与集群控制平面"
+      />
 
       <Tabs
         activeKey={getCurrentTab()}

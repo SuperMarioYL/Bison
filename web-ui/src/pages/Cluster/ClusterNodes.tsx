@@ -1,5 +1,6 @@
 import {
   CheckCircleOutlined,
+  ClusterOutlined,
   LockOutlined,
   PlusOutlined,
   QuestionCircleOutlined,
@@ -26,6 +27,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import NodeOnboardingModal from '../../components/NodeOnboardingModal';
 import OnboardingProgressDrawer from '../../components/OnboardingProgressDrawer';
+import PageHeader from '../../components/PageHeader';
 import {
   NodeInfo, NodeStatus,
   ResourceDefinition,
@@ -471,16 +473,21 @@ const ClusterNodes: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ margin: 0 }}>节点管理</h2>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setOnboardingModalVisible(true)}
-          >
-            添加节点
-          </Button>
-        </div>
+        <PageHeader
+          icon={<ClusterOutlined />}
+          gradient="var(--gradient-blue)"
+          title="节点管理"
+          subtitle="管理集群节点的分配模式、架构与资源容量"
+          extra={
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setOnboardingModalVisible(true)}
+            >
+              添加节点
+            </Button>
+          }
+        />
 
         {/* Status summary */}
         <Space style={{ marginBottom: 16 }}>

@@ -36,6 +36,18 @@
   --warning: #ff9500;
   --error: #ff3b30;
   --info: #5ac8fa;
+
+  /* Brand & category gradients (used for stat tiles, page-header icons, charts) */
+  --gradient-brand: linear-gradient(135deg, #0a84ff 0%, #5e5ce6 100%);
+  --gradient-blue: linear-gradient(135deg, #0a84ff 0%, #4dabf7 100%);
+  --gradient-purple: linear-gradient(135deg, #5e5ce6 0%, #b18cff 100%);
+  --gradient-teal: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
+  --gradient-green: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
+  --gradient-orange: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --gradient-pink: linear-gradient(135deg, #db2777 0%, #f472b6 100%);
+
+  /* Surface used for cards floating directly on the page background */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.10);
 }
 
 [data-theme="dark"] {
@@ -73,6 +85,17 @@
   --warning: #ff9f0a;
   --error: #ff453a;
   --info: #64d2ff;
+
+  /* Brand & category gradients (slightly brighter for dark backgrounds) */
+  --gradient-brand: linear-gradient(135deg, #0a84ff 0%, #7c79ff 100%);
+  --gradient-blue: linear-gradient(135deg, #0a84ff 0%, #4dabf7 100%);
+  --gradient-purple: linear-gradient(135deg, #7c79ff 0%, #b18cff 100%);
+  --gradient-teal: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+  --gradient-green: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+  --gradient-orange: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --gradient-pink: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* Glassmorphism utility classes */
