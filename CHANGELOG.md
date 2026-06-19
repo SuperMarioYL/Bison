@@ -5,6 +5,14 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.15] - 2026-06-19
+
+### Security — Login hardening
+
+- **Per-IP login rate limiting**: after 5 failed attempts within 5 minutes an IP is locked out for 15 minutes (HTTP 429 + `Retry-After`), stopping unthrottled brute-force of the admin password.
+- **Constant-time credential comparison** (`crypto/subtle.ConstantTimeCompare`) for both username and password, removing the early-exit timing side channel; both comparisons always run so username validity isn't leaked.
+- Added unit tests for the limiter (block threshold, success reset, window reset).
+
 ## [0.0.14] - 2026-06-19
 
 ### Fixed — Helm secret persistence
