@@ -59,7 +59,10 @@ jobs:
 
       - name: Web install
         working-directory: web-ui
-        run: npm ci --no-audit --no-fund
+        # Use npm install (not ci) so platform-specific optional deps such as
+        # @rollup/rollup-linux-x64-gnu resolve on the Linux runner even though the
+        # committed lockfile was generated on another platform.
+        run: npm install --no-audit --no-fund
 
       - name: Web lint
         working-directory: web-ui
