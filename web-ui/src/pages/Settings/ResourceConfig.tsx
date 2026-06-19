@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getApiErrorMessage } from '../../utils/error';
 import {
   Card,
   Table,
@@ -94,7 +95,7 @@ const ResourceConfig: React.FC = () => {
       setHasChanges(false);
     },
     onError: (error: any) => {
-      const errorMsg = error?.response?.data?.error || error?.message || '未知错误';
+      const errorMsg = getApiErrorMessage(error, '未知错误');
       message.error(`保存失败: ${errorMsg}`);
       console.error('Save error:', error);
     },

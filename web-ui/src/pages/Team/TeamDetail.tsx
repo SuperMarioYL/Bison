@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { getApiErrorMessage } from '../../utils/error';
 import { 
   Card, Form, Input, Button, Typography, message, Space, Select, 
   Descriptions, Spin, Tag, Table, Statistic, Row, Col, Divider, Popconfirm,
@@ -144,7 +145,7 @@ const TeamDetail: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['teamNodes', name] });
     },
     onError: (error: any) => {
-      message.error(`更新失败: ${error.response?.data?.error || error.message}`);
+      message.error(`更新失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 
@@ -158,7 +159,7 @@ const TeamDetail: React.FC = () => {
       navigate('/teams');
     },
     onError: (error: any) => {
-      message.error(`删除失败: ${error.response?.data?.error || error.message}`);
+      message.error(`删除失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 
@@ -174,7 +175,7 @@ const TeamDetail: React.FC = () => {
       rechargeForm.resetFields();
     },
     onError: (error: any) => {
-      message.error(`充值失败: ${error.response?.data?.error || error.message}`);
+      message.error(`充值失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 
@@ -187,7 +188,7 @@ const TeamDetail: React.FC = () => {
       setAutoRechargeModalVisible(false);
     },
     onError: (error: any) => {
-      message.error(`配置失败: ${error.response?.data?.error || error.message}`);
+      message.error(`配置失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 
@@ -200,7 +201,7 @@ const TeamDetail: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
     },
     onError: (error: any) => {
-      message.error(`操作失败: ${error.response?.data?.error || error.message}`);
+      message.error(`操作失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 
@@ -212,7 +213,7 @@ const TeamDetail: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
     },
     onError: (error: any) => {
-      message.error(`操作失败: ${error.response?.data?.error || error.message}`);
+      message.error(`操作失败: ${getApiErrorMessage(error, '未知错误')}`);
     },
   });
 

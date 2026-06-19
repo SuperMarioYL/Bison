@@ -8,6 +8,7 @@ import {
   UnlockOutlined
 } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getApiErrorMessage } from '../../utils/error';
 import {
   Badge,
   Button,
@@ -97,7 +98,7 @@ const ClusterNodes: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['managedNodes'] });
     },
     onError: (err: any) => {
-      message.error(`启用失败: ${err.response?.data?.error || err.message}`);
+      message.error(`启用失败: ${getApiErrorMessage(err, '未知错误')}`);
     },
   });
 
@@ -108,7 +109,7 @@ const ClusterNodes: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['managedNodes'] });
     },
     onError: (err: any) => {
-      message.error(`禁用失败: ${err.response?.data?.error || err.message}`);
+      message.error(`禁用失败: ${getApiErrorMessage(err, '未知错误')}`);
     },
   });
 
@@ -123,7 +124,7 @@ const ClusterNodes: React.FC = () => {
       setSelectedTeam(null);
     },
     onError: (err: any) => {
-      message.error(`分配失败: ${err.response?.data?.error || err.message}`);
+      message.error(`分配失败: ${getApiErrorMessage(err, '未知错误')}`);
     },
   });
 
@@ -134,7 +135,7 @@ const ClusterNodes: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['managedNodes'] });
     },
     onError: (err: any) => {
-      message.error(`释放失败: ${err.response?.data?.error || err.message}`);
+      message.error(`释放失败: ${getApiErrorMessage(err, '未知错误')}`);
     },
   });
 
