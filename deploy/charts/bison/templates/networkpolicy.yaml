@@ -1,0 +1,32 @@
+{{- if .Values.networkPolicy.enabled }}
+# Restrict ingress to the api-server: only web-ui pods and pods in the release
+# namespace may reach it on the API port. api-server egress (K8s API, OpenCost,
+# Prometheus) is unaffected since only Ingress is policed here.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "bison.apiServer.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bison.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-server
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "bison.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api-server
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "bison.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: web-ui
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.apiServer.service.port }}
+{{- end }}

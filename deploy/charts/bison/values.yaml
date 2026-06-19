@@ -65,6 +65,16 @@ apiServer:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # Optional autoscaling. When enabled, replicaCount is ignored (HPA owns replicas).
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  # Optional PodDisruptionBudget to keep at least one replica during voluntary disruptions.
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
 
 # Web UI configuration
 webUI:
@@ -87,6 +97,20 @@ webUI:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+# Optional NetworkPolicy restricting ingress to the api-server (off by default).
+# When enabled, the api-server only accepts traffic from web-ui pods and the
+# release namespace. Review before enabling to ensure it fits your CNI/topology.
+networkPolicy:
+  enabled: false
 
 # Ingress (unified entry point, web-ui nginx proxies /api to api-server)
 ingress:

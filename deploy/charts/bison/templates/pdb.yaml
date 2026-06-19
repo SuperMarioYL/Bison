@@ -1,0 +1,33 @@
+{{- if and .Values.apiServer.enabled .Values.apiServer.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "bison.apiServer.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bison.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-server
+spec:
+  minAvailable: {{ .Values.apiServer.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "bison.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api-server
+{{- end }}
+{{- if and .Values.webUI.enabled .Values.webUI.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "bison.webUI.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bison.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+spec:
+  minAvailable: {{ .Values.webUI.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "bison.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web-ui
+{{- end }}

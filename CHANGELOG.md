@@ -5,6 +5,15 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.26] - 2026-06-19
+
+### Added — Availability & network hardening templates (opt-in)
+
+- Optional **PodDisruptionBudget** (`apiServer.podDisruptionBudget` / `webUI.podDisruptionBudget`) keeps a minimum replica available during voluntary disruptions (node drains).
+- Optional **HorizontalPodAutoscaler** (`apiServer.autoscaling` / `webUI.autoscaling`); when enabled, the Deployment no longer pins `replicas` so the HPA owns scaling.
+- Optional **NetworkPolicy** (`networkPolicy.enabled`) restricting api-server ingress to web-ui pods and the release namespace.
+- All three are disabled by default; `values.schema.json` extended to type-check the new keys.
+
 ## [0.0.25] - 2026-06-19
 
 ### Added — Chart validation

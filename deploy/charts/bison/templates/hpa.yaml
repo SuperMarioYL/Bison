@@ -1,0 +1,49 @@
+{{- if and .Values.apiServer.enabled .Values.apiServer.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "bison.apiServer.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bison.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-server
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "bison.apiServer.fullname" . }}
+  minReplicas: {{ .Values.apiServer.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.apiServer.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.apiServer.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+{{- if and .Values.webUI.enabled .Values.webUI.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "bison.webUI.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bison.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web-ui
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "bison.webUI.fullname" . }}
+  minReplicas: {{ .Values.webUI.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.webUI.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.webUI.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

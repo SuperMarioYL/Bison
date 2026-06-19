@@ -8,7 +8,9 @@ metadata:
     {{- include "bison.labels" . | nindent 4 }}
     app.kubernetes.io/component: api-server
 spec:
+  {{- if not .Values.apiServer.autoscaling.enabled }}
   replicas: {{ .Values.apiServer.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "bison.selectorLabels" . | nindent 6 }}
