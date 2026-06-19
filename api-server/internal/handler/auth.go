@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"crypto/subtle"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +14,79 @@ import (
 	"github.com/bison/api-server/pkg/logger"
 )
 
+// Login brute-force protection: after maxLoginFails failed attempts from one IP
+// within loginWindow, that IP is locked out for loginBlock.
+const (
+	maxLoginFails = 5
+	loginWindow   = 5 * time.Minute
+	loginBlock    = 15 * time.Minute
+)
+
+type failRecord struct {
+	count        int
+	resetAt      time.Time
+	blockedUntil time.Time
+}
+
+// loginLimiter is a small in-memory per-IP failed-login limiter.
+type loginLimiter struct {
+	mu    sync.Mutex
+	fails map[string]*failRecord
+}
+
+func newLoginLimiter() *loginLimiter {
+	return &loginLimiter{fails: make(map[string]*failRecord)}
+}
+
+// allowed reports whether the IP may attempt a login now; if blocked it returns
+// the number of seconds to wait.
+func (l *loginLimiter) allowed(ip string, now time.Time) (bool, int) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	rec := l.fails[ip]
+	if rec != nil && now.Before(rec.blockedUntil) {
+		return false, int(rec.blockedUntil.Sub(now).Seconds()) + 1
+	}
+	return true, 0
+}
+
+// recordFailure increments the failure counter for an IP and blocks it once the
+// threshold within the window is exceeded.
+func (l *loginLimiter) recordFailure(ip string, now time.Time) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	rec := l.fails[ip]
+	if rec == nil || now.After(rec.resetAt) {
+		rec = &failRecord{resetAt: now.Add(loginWindow)}
+		l.fails[ip] = rec
+	}
+	rec.count++
+	if rec.count >= maxLoginFails {
+		rec.blockedUntil = now.Add(loginBlock)
+	}
+	// Opportunistic prune to bound memory.
+	if len(l.fails) > 1024 {
+		for k, v := range l.fails {
+			if now.After(v.resetAt) && now.After(v.blockedUntil) {
+				delete(l.fails, k)
+			}
+		}
+	}
+}
+
+func (l *loginLimiter) recordSuccess(ip string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.fails, ip)
+}
+
 // AuthHandler handles authentication
 type AuthHandler struct {
 	username  string
 	password  string
 	jwtSecret []byte
 	enabled   bool
+	limiter   *loginLimiter
 }
 
 // NewAuthHandler creates a new AuthHandler
@@ -26,6 +96,7 @@ func NewAuthHandler(username, password, jwtSecret string, enabled bool) *AuthHan
 		password:  password,
 		jwtSecret: []byte(jwtSecret),
 		enabled:   enabled,
+		limiter:   newLoginLimiter(),
 	}
 }
 
@@ -44,6 +115,17 @@ type LoginResponse struct {
 
 // Login handles user login
 func (h *AuthHandler) Login(c *gin.Context) {
+	ip := c.ClientIP()
+	now := time.Now()
+
+	// Reject brute-force attempts before doing any credential work.
+	if ok, retryAfter := h.limiter.allowed(ip, now); !ok {
+		logger.Warn("Login blocked: too many failed attempts", "ip", ip, "retryAfterSec", retryAfter)
+		c.Header("Retry-After", strconv.Itoa(retryAfter))
+		c.JSON(http.StatusTooManyRequests, gin.H{"error": "登录尝试过于频繁，请稍后再试", "code": "TOO_MANY_ATTEMPTS"})
+		return
+	}
+
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Warn("Login failed: invalid request", "error", err)
@@ -51,12 +133,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Validate credentials
-	if req.Username != h.username || req.Password != h.password {
-		logger.Warn("Login failed: invalid credentials", "username", req.Username)
+	// Validate credentials using constant-time comparison to avoid leaking timing
+	// information. Both comparisons always run so username validity is not revealed.
+	userOK := subtle.ConstantTimeCompare([]byte(req.Username), []byte(h.username)) == 1
+	passOK := subtle.ConstantTimeCompare([]byte(req.Password), []byte(h.password)) == 1
+	if !userOK || !passOK {
+		h.limiter.recordFailure(ip, now)
+		logger.Warn("Login failed: invalid credentials", "username", req.Username, "ip", ip)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户名或密码错误", "code": "INVALID_CREDENTIALS"})
 		return
 	}
+	h.limiter.recordSuccess(ip)
 
 	// Generate JWT token
 	expiresAt := time.Now().Add(24 * time.Hour)
