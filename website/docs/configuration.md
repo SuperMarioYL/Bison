@@ -16,13 +16,17 @@ Bison is configured primarily through Helm values. You can customize the install
 |-----------|-------------|---------|---------|
 | `auth.enabled` | Enable authentication | `false` | `true` |
 | `auth.admin.username` | Admin username | `admin` | `admin` |
-| `auth.admin.password` | Admin password | `admin` | `changeme` |
-| `apiServer.replicaCount` | API server replicas | `2` | `3` |
+| `auth.admin.password` | Admin password (must be non-default when `auth.enabled=true`) | `""` | `changeme` |
+| `apiServer.replicaCount` | API server replicas (safe to raise: scheduler uses leader election) | `2` | `3` |
 | `apiServer.image.repository` | API server image | `ghcr.io/supermarioyl/bison/api-server` | - |
-| `apiServer.image.tag` | API server image tag | `0.0.12` | `latest` |
+| `apiServer.image.tag` | API server image tag | _(chart appVersion)_ | `latest` |
+| `apiServer.autoscaling.enabled` | Enable HPA for the API server (then `replicaCount` is ignored) | `false` | `true` |
+| `apiServer.podDisruptionBudget.enabled` | Keep min replicas available during node drains | `false` | `true` |
 | `webUI.replicaCount` | Web UI replicas | `2` | `3` |
 | `webUI.image.repository` | Web UI image | `ghcr.io/supermarioyl/bison/web-ui` | - |
-| `webUI.image.tag` | Web UI image tag | `0.0.12` | `latest` |
+| `webUI.image.tag` | Web UI image tag | _(chart appVersion)_ | `latest` |
+| `webUI.autoscaling.enabled` | Enable HPA for the Web UI | `false` | `true` |
+| `networkPolicy.enabled` | Restrict api-server ingress to web-ui pods + release namespace | `false` | `true` |
 | `dependencies.opencost.apiUrl` | OpenCost API endpoint | `http://opencost.opencost.svc.cluster.local:9003` | Custom URL |
 
 ### Example Custom Values
@@ -312,8 +316,14 @@ Additional configuration can be provided via environment variables:
 | `KUBECONFIG` | Path to kubeconfig file | In-cluster config |
 | `OPENCOST_URL` | OpenCost API URL | `http://opencost.opencost.svc.cluster.local:9003` |
 | `AUTH_ENABLED` | Enable authentication | `false` |
+| `ADMIN_USERNAME` | Admin username | `admin` |
+| `ADMIN_PASSWORD` | Admin password. **Must not be `admin` when `AUTH_ENABLED=true`** — the server refuses to start with the default. | `admin` (dev only) |
+| `JWT_SECRET` | JWT signing key. **Required (non-default) when `AUTH_ENABLED=true`** — startup is refused otherwise. | _(dev default)_ |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated CORS allowlist; empty allows all origins | _(empty)_ |
+| `LEADER_ELECTION_ENABLED` | Run the billing / auto-recharge / alert scheduler under a Kubernetes lease so it executes on exactly one replica (safe to scale `apiServer.replicaCount`) | `true` |
 | `LOG_LEVEL` | Logging level | `info` |
-| `BILLING_INTERVAL` | Billing calculation interval | `10m` |
+
+> The billing interval is configured in the billing settings (hours), not via an environment variable.
 
 Set environment variables in Helm values:
 
