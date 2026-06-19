@@ -502,42 +502,59 @@ func (s *BalanceService) calculateNextExecution(config *AutoRechargeConfig) time
 	}
 }
 
-// CalculateDailyConsumption calculates the average daily consumption for a team based on recent history
+// CalculateDailyConsumption estimates the average daily spend for a team from its
+// recent deduction history.
+//
+// The denominator is the actual span of deduction activity within the last 7 days
+// (capped at 7 days, floored to avoid wildly overestimating from a single very
+// recent deduction) — NOT a fixed 7 days, which previously underestimated the burn
+// rate whenever the real activity window was shorter. We also fetch enough records
+// to cover a full week of hourly billing (168+), since the old 100-record cap
+// truncated the 7-day window and undercounted total deductions.
 func (s *BalanceService) CalculateDailyConsumption(ctx context.Context, teamName string) (float64, error) {
-	records, err := s.GetRechargeHistory(ctx, teamName, 100) // Get last 100 records
+	const (
+		lookbackDays = 7
+		maxSpanDays  = 7.0
+		minSpanDays  = 0.5
+		fetchRecords = 400
+	)
+
+	records, err := s.GetRechargeHistory(ctx, teamName, fetchRecords)
 	if err != nil {
 		return 0, err
 	}
 
-	// Calculate total deductions in last 7 days
 	now := time.Now()
-	sevenDaysAgo := now.AddDate(0, 0, -7)
+	windowStart := now.AddDate(0, 0, -lookbackDays)
 
 	var totalDeductions float64
-	var daysWithData float64 = 7 // Default to 7 days
+	var oldestDeduction time.Time
+	hasDeduction := false
 
 	for _, record := range records {
-		if record.Type == "deduction" && record.Timestamp.After(sevenDaysAgo) {
-			totalDeductions += -record.Amount // Amount is negative for deductions
+		if record.Type != "deduction" || !record.Timestamp.After(windowStart) {
+			continue
+		}
+		totalDeductions += -record.Amount // Amount is negative for deductions
+		if !hasDeduction || record.Timestamp.Before(oldestDeduction) {
+			oldestDeduction = record.Timestamp
+			hasDeduction = true
 		}
 	}
 
-	// If we have less than 7 days of data, calculate based on actual time span
-	if len(records) > 0 {
-		oldestRecord := records[len(records)-1]
-		if oldestRecord.Timestamp.After(sevenDaysAgo) {
-			actualDays := now.Sub(oldestRecord.Timestamp).Hours() / 24
-			if actualDays > 0 {
-				daysWithData = actualDays
-			}
-		}
-	}
-
-	if daysWithData == 0 {
+	if !hasDeduction || totalDeductions <= 0 {
 		return 0, nil
 	}
 
-	return totalDeductions / daysWithData, nil
+	spanDays := now.Sub(oldestDeduction).Hours() / 24
+	if spanDays > maxSpanDays {
+		spanDays = maxSpanDays
+	}
+	if spanDays < minSpanDays {
+		spanDays = minSpanDays
+	}
+
+	return totalDeductions / spanDays, nil
 }
 
 // SetOverdueAt records (or clears) when a team first went into negative balance.

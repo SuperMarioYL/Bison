@@ -5,6 +5,13 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18] - 2026-06-19
+
+### Fixed — Daily-consumption (burn-rate) estimate
+
+- `CalculateDailyConsumption` now divides total in-window deductions by the **actual span of deduction activity** (capped at 7 days, floored at 0.5 day) instead of a fixed 7-day denominator, which previously underestimated the burn rate and overestimated the time-to-overdue.
+- Fetches up to 400 history records (was 100) so a full week of hourly deductions isn't truncated and undercounted. Recharges and out-of-window records are correctly excluded. Added unit tests for span, floor, and exclusion behavior.
+
 ## [0.0.17] - 2026-06-19
 
 ### Fixed — Billing interval correctness & restart safety

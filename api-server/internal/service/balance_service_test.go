@@ -164,6 +164,73 @@ func TestDeductPreservesOverdueAt(t *testing.T) {
 	}
 }
 
+func addDeduction(t *testing.T, svc *BalanceService, team string, amount float64, ts time.Time) {
+	t.Helper()
+	if err := svc.addRechargeRecord(context.Background(), team, &RechargeRecord{
+		ID:        ts.Format(time.RFC3339Nano),
+		Timestamp: ts,
+		Type:      "deduction",
+		Amount:    -amount,
+		Operator:  "system",
+	}); err != nil {
+		t.Fatalf("addRechargeRecord: %v", err)
+	}
+}
+
+func TestCalculateDailyConsumptionUsesDeductionSpan(t *testing.T) {
+	svc := newTestBalanceService()
+	ctx := context.Background()
+	now := time.Now()
+
+	// Two deductions spanning ~4 days, total 200 -> ~50/day.
+	addDeduction(t, svc, "team-a", 100, now.Add(-4*24*time.Hour))
+	addDeduction(t, svc, "team-a", 100, now)
+
+	rate, err := svc.CalculateDailyConsumption(ctx, "team-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rate < 45 || rate > 55 {
+		t.Fatalf("expected ~50/day, got %.2f", rate)
+	}
+}
+
+func TestCalculateDailyConsumptionFloorsSpan(t *testing.T) {
+	svc := newTestBalanceService()
+	ctx := context.Background()
+
+	// Single very recent deduction: span floored to 0.5 day -> 10 / 0.5 = 20.
+	addDeduction(t, svc, "team-a", 10, time.Now())
+	rate, err := svc.CalculateDailyConsumption(ctx, "team-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rate < 18 || rate > 22 {
+		t.Fatalf("expected ~20/day (floored span), got %.2f", rate)
+	}
+}
+
+func TestCalculateDailyConsumptionIgnoresOldAndNonDeductions(t *testing.T) {
+	svc := newTestBalanceService()
+	ctx := context.Background()
+	now := time.Now()
+
+	addDeduction(t, svc, "team-a", 1000, now.Add(-30*24*time.Hour)) // outside 7d window
+	// a recharge inside the window must not count as consumption
+	if err := svc.addRechargeRecord(ctx, "team-a", &RechargeRecord{
+		ID: "r1", Timestamp: now, Type: "recharge", Amount: 500,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	rate, err := svc.CalculateDailyConsumption(ctx, "team-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rate != 0 {
+		t.Fatalf("expected 0 (no in-window deductions), got %.2f", rate)
+	}
+}
+
 // TestConcurrentRecharge exercises the optimistic-concurrency retry path against a
 // fake that enforces resourceVersion. Each Recharge re-reads, recomputes and
 // re-writes under retry.RetryOnConflict, so the final balance must equal the sum of
