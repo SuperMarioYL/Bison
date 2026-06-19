@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.14] - 2026-06-19
+
+### Fixed — Helm secret persistence
+
+- The auth `Secret` now reuses the existing JWT signing key and admin password on `helm upgrade` via `lookup`, instead of regenerating them with `randAlphaNum` on every render. Previously each upgrade rotated the JWT key (invalidating all sessions) and silently changed the admin password. Fresh installs still auto-generate; explicit `auth.admin.password` / `auth.jwt.secret` and `existingSecret` continue to take precedence.
+
 ## [0.0.13] - 2026-06-19
 
 ### Added — Scheduler leader election
