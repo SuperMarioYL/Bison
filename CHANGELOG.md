@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16] - 2026-06-19
+
+### Security — Configurable CORS
+
+- CORS is now configurable via `CORS_ALLOWED_ORIGINS` (comma-separated allowlist). When set, only listed origins are echoed back (with `Vary: Origin` and `Access-Control-Allow-Credentials`); other origins get no `Access-Control-Allow-Origin` and are blocked by the browser. Default (unset) preserves the previous `*` behavior, so existing deployments are unaffected until they opt in to tightening.
+
 ## [0.0.15] - 2026-06-19
 
 ### Security — Login hardening

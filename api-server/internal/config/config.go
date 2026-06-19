@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config holds the API server configuration
@@ -21,6 +22,10 @@ type Config struct {
 	// External services
 	OpenCostURL   string
 	PrometheusURL string
+
+	// CORSAllowedOrigins restricts cross-origin requests. Empty means allow all
+	// origins ("*"); set a comma-separated allowlist to tighten in production.
+	CORSAllowedOrigins []string
 
 	// Feature toggles
 	CapsuleEnabled bool
@@ -86,6 +91,15 @@ func Load() (*Config, error) {
 	}
 	if le := os.Getenv("LEADER_ELECTION_ENABLED"); le == "false" {
 		cfg.LeaderElectionEnabled = false
+	}
+
+	// CORS allowlist (comma-separated origins). Empty -> allow all.
+	if origins := os.Getenv("CORS_ALLOWED_ORIGINS"); origins != "" {
+		for _, o := range strings.Split(origins, ",") {
+			if o = strings.TrimSpace(o); o != "" {
+				cfg.CORSAllowedOrigins = append(cfg.CORSAllowedOrigins, o)
+			}
+		}
 	}
 
 	return cfg, nil
