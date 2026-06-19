@@ -242,6 +242,12 @@ func (s *BalanceService) GetAutoRechargeConfig(ctx context.Context, teamName str
 func (s *BalanceService) SetAutoRechargeConfig(ctx context.Context, teamName string, config *AutoRechargeConfig) error {
 	logger.Info("Setting auto-recharge config", "team", teamName, "enabled", config.Enabled)
 
+	// Reject a non-positive amount on an enabled config: it would otherwise be
+	// applied every tick and silently deduct from the balance.
+	if config.Enabled && config.Amount <= 0 {
+		return fmt.Errorf("auto-recharge amount must be positive when enabled")
+	}
+
 	// Calculate next execution time
 	if config.Enabled {
 		config.NextExecution = s.calculateNextExecution(config)

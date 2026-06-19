@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.29] - 2026-06-19
+
+### Fixed — Auto-recharge validation
+
+- `SetAutoRechargeConfig` now rejects a non-positive amount when auto-recharge is enabled. Previously such a config would be stored and applied every tick, silently deducting from the team balance instead of topping it up. Disabled configs remain unrestricted. Added unit tests.
+
 ## [0.0.28] - 2026-06-19
 
 ### Changed — Scheduler run timeouts

@@ -102,6 +102,26 @@ func TestRechargeThenDeduct(t *testing.T) {
 	}
 }
 
+func TestSetAutoRechargeConfigRejectsNonPositive(t *testing.T) {
+	svc := newTestBalanceService()
+	ctx := context.Background()
+
+	if err := svc.SetAutoRechargeConfig(ctx, "team-a", &AutoRechargeConfig{Enabled: true, Amount: 0, Schedule: "monthly", DayOfMonth: 1}); err == nil {
+		t.Fatal("enabled config with amount 0 should error")
+	}
+	if err := svc.SetAutoRechargeConfig(ctx, "team-a", &AutoRechargeConfig{Enabled: true, Amount: -10, Schedule: "monthly", DayOfMonth: 1}); err == nil {
+		t.Fatal("enabled config with negative amount should error")
+	}
+	// Disabled config with any amount is allowed (no deductions happen).
+	if err := svc.SetAutoRechargeConfig(ctx, "team-a", &AutoRechargeConfig{Enabled: false, Amount: 0}); err != nil {
+		t.Fatalf("disabled config should be allowed: %v", err)
+	}
+	// Valid enabled config.
+	if err := svc.SetAutoRechargeConfig(ctx, "team-a", &AutoRechargeConfig{Enabled: true, Amount: 100, Schedule: "monthly", DayOfMonth: 1}); err != nil {
+		t.Fatalf("valid config should be accepted: %v", err)
+	}
+}
+
 func TestDeductAllowsNegativeBalance(t *testing.T) {
 	svc := newTestBalanceService()
 	ctx := context.Background()
