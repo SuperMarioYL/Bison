@@ -141,8 +141,8 @@ func main() {
 		// Feature flags (public)
 		api.GET("/features", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
-				"costEnabled":      costSvc.IsEnabled(),
-				"capsuleEnabled":   cfg.CapsuleEnabled,
+				"costEnabled":       costSvc.IsEnabled(),
+				"capsuleEnabled":    cfg.CapsuleEnabled,
 				"prometheusEnabled": cfg.PrometheusURL != "",
 			})
 		})

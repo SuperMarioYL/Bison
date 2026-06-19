@@ -81,11 +81,11 @@ type OnboardingRequest struct {
 
 // OnboardingService handles node onboarding operations
 type OnboardingService struct {
-	k8sClient       *k8s.Client
-	nodeSvc         *NodeService
-	initScriptSvc   *InitScriptService
-	runningJobs     map[string]context.CancelFunc
-	runningJobsMu   sync.RWMutex
+	k8sClient     *k8s.Client
+	nodeSvc       *NodeService
+	initScriptSvc *InitScriptService
+	runningJobs   map[string]context.CancelFunc
+	runningJobsMu sync.RWMutex
 }
 
 // NewOnboardingService creates a new OnboardingService
