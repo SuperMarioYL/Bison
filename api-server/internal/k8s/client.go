@@ -37,6 +37,11 @@ func NewClientWithInterfaces(clientset kubernetes.Interface, dynamicClient dynam
 	}
 }
 
+// Clientset exposes the underlying typed client (used e.g. for leader election).
+func (c *Client) Clientset() kubernetes.Interface {
+	return c.clientset
+}
+
 // NewClient creates a new Kubernetes client
 func NewClient() (*Client, error) {
 	var config *rest.Config

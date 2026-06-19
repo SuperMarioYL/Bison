@@ -14,6 +14,7 @@ import (
 	"github.com/bison/api-server/internal/config"
 	"github.com/bison/api-server/internal/handler"
 	"github.com/bison/api-server/internal/k8s"
+	"github.com/bison/api-server/internal/leader"
 	"github.com/bison/api-server/internal/middleware"
 	"github.com/bison/api-server/internal/opencost"
 	"github.com/bison/api-server/internal/scheduler"
@@ -300,9 +301,22 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Start scheduler
+	// Start scheduler. When leader election is enabled the singleton scheduler
+	// runs on exactly one replica at a time (guards against duplicate billing);
+	// otherwise it runs directly (single-replica / local dev).
 	ctx, cancel := context.WithCancel(context.Background())
-	sched.Start(ctx)
+	if cfg.LeaderElectionEnabled {
+		go leader.Run(ctx, k8sClient.Clientset(), service.BisonNamespace,
+			func(leaderCtx context.Context) {
+				sched.Start(leaderCtx)
+				<-leaderCtx.Done()
+				sched.Stop()
+			},
+			func() { sched.Stop() },
+		)
+	} else {
+		sched.Start(ctx)
+	}
 
 	// Start server in goroutine
 	go func() {

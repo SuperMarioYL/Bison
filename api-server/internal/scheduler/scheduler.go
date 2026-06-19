@@ -19,8 +19,10 @@ type Scheduler struct {
 	executions   []service.TaskExecution
 	executionsMu sync.RWMutex
 
-	stopCh chan struct{}
-	wg     sync.WaitGroup
+	mu      sync.Mutex
+	started bool
+	stopCh  chan struct{}
+	wg      sync.WaitGroup
 }
 
 // NewScheduler creates a new Scheduler
@@ -34,31 +36,41 @@ func NewScheduler(
 		balanceSvc: balanceSvc,
 		alertSvc:   alertSvc,
 		executions: make([]service.TaskExecution, 0),
-		stopCh:     make(chan struct{}),
 	}
 }
 
-// Start starts all scheduled tasks
+// Start starts all scheduled tasks. It is idempotent and re-startable: calling
+// Start after a Stop (e.g. when leadership is re-acquired) spins up a fresh set
+// of tasks against a new stop channel.
 func (s *Scheduler) Start(ctx context.Context) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		return
+	}
+	s.started = true
+	s.stopCh = make(chan struct{})
 	logger.Info("Starting scheduler")
 
-	// Start billing task (every hour)
-	s.wg.Add(1)
+	s.wg.Add(3)
 	go s.runBillingTask(ctx)
-
-	// Start auto-recharge task (every hour)
-	s.wg.Add(1)
 	go s.runAutoRechargeTask(ctx)
-
-	// Start alert check task (every 15 minutes)
-	s.wg.Add(1)
 	go s.runAlertTask(ctx)
 }
 
-// Stop stops all scheduled tasks
+// Stop stops all scheduled tasks and waits for them to exit. Safe to call when
+// not started.
 func (s *Scheduler) Stop() {
-	logger.Info("Stopping scheduler")
+	s.mu.Lock()
+	if !s.started {
+		s.mu.Unlock()
+		return
+	}
+	s.started = false
 	close(s.stopCh)
+	s.mu.Unlock()
+
+	logger.Info("Stopping scheduler")
 	s.wg.Wait()
 }
 
@@ -101,14 +113,14 @@ func (s *Scheduler) safeExecute(name string, fn func()) {
 
 // sleepWithJitter waits a random duration in [0, max) to desynchronize task
 // firing across replicas, returning false if the scheduler is stopped meanwhile.
-func (s *Scheduler) sleepWithJitter(max time.Duration) bool {
+func (s *Scheduler) sleepWithJitter(stopCh <-chan struct{}, max time.Duration) bool {
 	if max <= 0 {
 		return true
 	}
 	timer := time.NewTimer(time.Duration(rand.Int63n(int64(max))))
 	defer timer.Stop()
 	select {
-	case <-s.stopCh:
+	case <-stopCh:
 		return false
 	case <-timer.C:
 		return true
@@ -117,8 +129,9 @@ func (s *Scheduler) sleepWithJitter(max time.Duration) bool {
 
 func (s *Scheduler) runBillingTask(ctx context.Context) {
 	defer s.wg.Done()
+	stopCh := s.stopCh
 
-	if !s.sleepWithJitter(60 * time.Second) {
+	if !s.sleepWithJitter(stopCh, 60*time.Second) {
 		return
 	}
 
@@ -127,7 +140,7 @@ func (s *Scheduler) runBillingTask(ctx context.Context) {
 
 	for {
 		select {
-		case <-s.stopCh:
+		case <-stopCh:
 			return
 		case <-ticker.C:
 			s.safeExecute("billing", func() { s.executeBillingTask(ctx) })
@@ -161,8 +174,9 @@ func (s *Scheduler) executeBillingTask(ctx context.Context) {
 
 func (s *Scheduler) runAutoRechargeTask(ctx context.Context) {
 	defer s.wg.Done()
+	stopCh := s.stopCh
 
-	if !s.sleepWithJitter(60 * time.Second) {
+	if !s.sleepWithJitter(stopCh, 60*time.Second) {
 		return
 	}
 
@@ -171,7 +185,7 @@ func (s *Scheduler) runAutoRechargeTask(ctx context.Context) {
 
 	for {
 		select {
-		case <-s.stopCh:
+		case <-stopCh:
 			return
 		case <-ticker.C:
 			s.safeExecute("auto_recharge", func() { s.executeAutoRechargeTask(ctx) })
@@ -205,8 +219,9 @@ func (s *Scheduler) executeAutoRechargeTask(ctx context.Context) {
 
 func (s *Scheduler) runAlertTask(ctx context.Context) {
 	defer s.wg.Done()
+	stopCh := s.stopCh
 
-	if !s.sleepWithJitter(30 * time.Second) {
+	if !s.sleepWithJitter(stopCh, 30*time.Second) {
 		return
 	}
 
@@ -215,7 +230,7 @@ func (s *Scheduler) runAlertTask(ctx context.Context) {
 
 	for {
 		select {
-		case <-s.stopCh:
+		case <-stopCh:
 			return
 		case <-ticker.C:
 			s.safeExecute("alert_check", func() { s.executeAlertTask(ctx) })
