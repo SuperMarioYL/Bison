@@ -59,10 +59,13 @@ jobs:
 
       - name: Web install
         working-directory: web-ui
-        # Use npm install (not ci) so platform-specific optional deps such as
-        # @rollup/rollup-linux-x64-gnu resolve on the Linux runner even though the
-        # committed lockfile was generated on another platform.
-        run: npm install --no-audit --no-fund
+        # Remove the lockfile before install so platform-specific optional deps
+        # (e.g. @rollup/rollup-linux-x64-gnu) resolve on the Linux runner. A lock
+        # generated on another platform omits them and triggers npm bug #4828.
+        # This mirrors the web-ui Dockerfile.
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund
 
       - name: Web lint
         working-directory: web-ui
