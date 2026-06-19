@@ -117,7 +117,7 @@ jobs:
           cat web-ui/package.json | grep version
 
       - name: Upload updated files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: updated-files
           path: |
@@ -213,7 +213,7 @@ jobs:
           ls -lh bison-${VERSION}.tgz
 
       - name: Upload Helm chart artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: helm-chart
           path: bison-${{ needs.prepare.outputs.version }}.tgz
