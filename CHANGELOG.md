@@ -5,6 +5,13 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25] - 2026-06-19
+
+### Added — Chart validation
+
+- Added `values.schema.json` so Helm validates value types at install/upgrade time (e.g. a string `replicaCount` or non-boolean `enabled` now fails fast instead of being silently mis-applied). The schema type-checks known keys while remaining lenient about additions.
+- Added `kubeVersion: ">=1.22.0-0"` to `Chart.yaml` so unsupported clusters are rejected up front.
+
 ## [0.0.24] - 2026-06-19
 
 ### Changed — Frontend re-render reduction
