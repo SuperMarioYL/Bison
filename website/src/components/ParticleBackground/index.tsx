@@ -46,23 +46,11 @@ export default function ParticleBackground(): ReactNode {
       });
     }
 
-    // Animation loop
-    let animationFrameId: number;
-    const animate = () => {
+    // Draw a single frame (positions are advanced by the caller when animating).
+    const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((particle, i) => {
-        // Update position
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        // Wrap around edges
-        if (particle.x < 0) particle.x = canvas.width;
-        if (particle.x > canvas.width) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.height;
-        if (particle.y > canvas.height) particle.y = 0;
-
-        // Draw particle
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
@@ -85,15 +73,60 @@ export default function ParticleBackground(): ReactNode {
           }
         });
       });
+    };
 
+    // Respect reduced-motion: render a single static frame and skip the loop.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      draw();
+      return () => window.removeEventListener('resize', resizeCanvas);
+    }
+
+    // Animation loop
+    let animationFrameId = 0;
+    const animate = () => {
+      particles.forEach(particle => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        if (particle.x < 0) particle.x = canvas.width;
+        if (particle.x > canvas.width) particle.x = 0;
+        if (particle.y < 0) particle.y = canvas.height;
+        if (particle.y > canvas.height) particle.y = 0;
+      });
+      draw();
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    // Pause the rAF loop while the hero is scrolled off-screen to save CPU/battery.
+    let running = false;
+    const start = () => {
+      if (!running) {
+        running = true;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+    const stop = () => {
+      running = false;
+      cancelAnimationFrame(animationFrameId);
+    };
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          start();
+        } else {
+          stop();
+        }
+      },
+      {threshold: 0},
+    );
+    observer.observe(canvas);
+    start();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
+      stop();
     };
   }, []);
 

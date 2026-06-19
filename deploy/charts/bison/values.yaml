@@ -42,7 +42,11 @@ dependencies:
 # API Server configuration
 apiServer:
   enabled: true
-  replicaCount: 2
+  # NOTE: keep this at 1 until scheduler leader election is implemented.
+  # The api-server runs the billing/auto-recharge/alert scheduler; running more
+  # than one replica would execute those tasks once per replica and double-bill
+  # tenants. See docs/optimization-roadmap.md (主题 1) before scaling up.
+  replicaCount: 1
   image:
     repository: bison/api-server
     tag: "" # Defaults to Chart.AppVersion if empty

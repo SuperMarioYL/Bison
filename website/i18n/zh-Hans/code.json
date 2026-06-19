@@ -486,5 +486,65 @@
   "homepage.description": {
     "message": "基于 Kubernetes、Capsule 和 OpenCost 的企业级 GPU 资源计费和多租户管理平台",
     "description": "Homepage meta description"
+  },
+  "homepage.features.title": {
+    "message": "运行 GPU 集群所需的一切能力"
+  },
+  "homepage.features.subtitle": {
+    "message": "多租户、计量与计费 —— 统一在一个云原生平台中"
+  },
+  "homepage.feature.multitenant.title": {
+    "message": "多租户隔离"
+  },
+  "homepage.feature.multitenant.desc": {
+    "message": "基于 Capsule 实现真正的 Kubernetes 原生多租户。每个团队获得隔离的资源与共享/独占节点池，免去手动配额配置。"
+  },
+  "homepage.feature.billing.title": {
+    "message": "实时计费"
+  },
+  "homepage.feature.billing.desc": {
+    "message": "集成 OpenCost 自动追踪成本。按 Pod、按命名空间、按团队可视化，CPU、内存、GPU 价格均可自定义。"
+  },
+  "homepage.feature.dashboard.title": {
+    "message": "统一控制台"
+  },
+  "homepage.feature.dashboard.desc": {
+    "message": "为管理员、团队负责人与财务提供一站式视图：实时余额监控、告警、自动停用与完整用量报表。"
+  },
+  "homepage.feature.deploy.title": {
+    "message": "分钟级部署"
+  },
+  "homepage.feature.deploy.desc": {
+    "message": "零外部依赖 —— 所有数据存储于 Kubernetes ConfigMap。一条 Helm 命令安装，30 分钟内即可拥有完整的 GPU 资源管理能力。"
+  },
+  "homepage.feature.alerts.title": {
+    "message": "自动扣费与告警"
+  },
+  "homepage.feature.alerts.desc": {
+    "message": "预付费余额 + 实时扣费的自动计费。多渠道告警（Webhook、钉钉、企业微信），阈值可配置并支持自动停用。"
+  },
+  "homepage.feature.production.title": {
+    "message": "生产就绪"
+  },
+  "homepage.feature.production.desc": {
+    "message": "云原生架构，支持水平扩展、RBAC 集成与完整审计日志，提供多平台 Docker 镜像与企业 SSO 支持。"
+  },
+  "showcase.title": {
+    "message": "一个控制台，管好 GPU 全生命周期"
+  },
+  "showcase.subtitle": {
+    "message": "从集群拓扑到团队级分摊计费 —— 每一个界面，皆由矢量渲染"
+  },
+  "showcase.tab.dashboard": {
+    "message": "资源总览"
+  },
+  "showcase.tab.cluster": {
+    "message": "集群节点"
+  },
+  "showcase.tab.report": {
+    "message": "报表中心"
+  },
+  "showcase.tab.billing": {
+    "message": "计费配置"
   }
 }

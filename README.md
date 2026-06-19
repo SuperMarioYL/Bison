@@ -241,11 +241,11 @@ helm install opencost opencost/opencost -n opencost --create-namespace \
 
 ```bash
 # Install directly from GitHub Container Registry
-helm install bison oci://ghcr.io/supermarioyl/bison/bison \
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
   --namespace bison-system \
   --create-namespace \
   --set auth.enabled=true \
-  --version 0.0.2
+  --version 0.0.12
 ```
 
 > **Note:** Requires Helm >= 3.8.0 for OCI support
@@ -254,10 +254,10 @@ helm install bison oci://ghcr.io/supermarioyl/bison/bison \
 
 ```bash
 # Download Helm chart from GitHub Release
-wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.2/bison-0.0.2.tgz
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.12/bison-0.0.12.tgz
 
 # Install from downloaded chart
-helm install bison bison-0.0.2.tgz \
+helm install bison bison-0.0.12.tgz \
   --namespace bison-system \
   --create-namespace \
   --set auth.enabled=true
@@ -286,7 +286,7 @@ kubectl get secret bison-auth -n bison-system -o jsonpath='{.data.password}' | b
 kubectl port-forward svc/bison-api 8080:8080 -n bison-system
 
 # Access API
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/healthz
 ```
 
 ---
@@ -742,18 +742,19 @@ Bison Helm charts are distributed via **GitHub Container Registry (GHCR)** using
 
 ```bash
 # Install specific version directly from GHCR
-helm install my-bison oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
+helm install my-bison oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12
 
 # Or pull the chart first, then install
-helm pull oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2
-helm install my-bison bison-0.0.2.tgz
+helm pull oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12
+helm install my-bison bison-0.0.12.tgz
 
 # Customize installation
-helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
-  --version 0.0.2 \
+helm install my-bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
   --namespace bison-system \
   --create-namespace \
-  --set opencost.url=http://opencost.opencost-system.svc:9003 \
+  --set dependencies.opencost.apiUrl=http://opencost.opencost.svc.cluster.local:9003 \
+  --set dependencies.opencost.enabled=true \
   --set auth.enabled=true
 ```
 
@@ -761,10 +762,10 @@ helm install my-bison oci://ghcr.io/supermarioyl/bison/bison \
 
 ```bash
 # Download chart from GitHub Releases
-wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.2/bison-0.0.2.tgz
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.12/bison-0.0.12.tgz
 
 # Install from downloaded file
-helm install my-bison bison-0.0.2.tgz \
+helm install my-bison bison-0.0.12.tgz \
   --namespace bison-system \
   --create-namespace
 ```
@@ -815,8 +816,8 @@ Bison uses automated GitHub Actions for releases:
 
 3. **Verify release**:
    - Check [GitHub Releases](https://github.com/SuperMarioYL/Bison/releases)
-   - Pull new images: `docker pull ghcr.io/supermarioyl/bison/api-server:0.0.2`
-   - Install chart: `helm install test oci://ghcr.io/supermarioyl/bison/bison --version 0.0.2`
+   - Pull new images: `docker pull ghcr.io/supermarioyl/bison/api-server:0.0.12`
+   - Install chart: `helm install test oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12`
 
 ## Project Structure
 

@@ -67,6 +67,11 @@ const config: Config = {
     metadata: [
       { name: 'google-site-verification', content: 'AKwgEpVubW0iVPeZN2RkopUMJbx4K-Yy8aWwCZq-T34' },
       { name: 'baidu-site-verification', content: 'codeva-E3148CbKk3' },
+      { name: 'keywords', content: 'Kubernetes, GPU, billing, chargeback, multi-tenant, Capsule, OpenCost, GPU 计费, 多租户, 资源调度' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
     ],
     colorMode: {
       respectPrefersColorScheme: true,

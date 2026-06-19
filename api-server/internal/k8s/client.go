@@ -24,8 +24,17 @@ import (
 
 // Client wraps Kubernetes client operations
 type Client struct {
-	clientset     *kubernetes.Clientset
+	clientset     kubernetes.Interface
 	dynamicClient dynamic.Interface
+}
+
+// NewClientWithInterfaces builds a Client from pre-constructed clients.
+// It is primarily used to inject fake clients in unit tests.
+func NewClientWithInterfaces(clientset kubernetes.Interface, dynamicClient dynamic.Interface) *Client {
+	return &Client{
+		clientset:     clientset,
+		dynamicClient: dynamicClient,
+	}
 }
 
 // NewClient creates a new Kubernetes client
@@ -50,6 +59,16 @@ func NewClient() (*Client, error) {
 		logger.Info("Using kubeconfig", "path", kubeconfig)
 	} else {
 		logger.Info("Using in-cluster config")
+	}
+
+	// Raise client-side rate limits well above the client-go default (5 QPS / 10 burst)
+	// so dashboard and billing list bursts are not serialized behind the throttler.
+	// Only override when the loaded config has not set explicit limits.
+	if config.QPS == 0 {
+		config.QPS = 50
+	}
+	if config.Burst == 0 {
+		config.Burst = 100
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)

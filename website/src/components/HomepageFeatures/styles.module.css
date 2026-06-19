@@ -10,9 +10,21 @@
   background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.sectionTitle {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.sectionSubtitle {
+  color: #86868b;
+  font-size: 1.1rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+[data-theme='dark'] .sectionSubtitle {
+  color: #98989d;
 }
 
 .featureCard {
@@ -57,19 +69,24 @@
 }
 
 .featureIcon {
-  font-size: 3rem;
-  display: inline-block;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .featureCard:hover .featureIcon {
-  transform: scale(1.2) rotate(5deg);
+  transform: scale(1.08) rotate(-3deg);
 }
 
 .featureTitle {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   font-weight: 600;
+  font-size: 1.2rem;
   color: #1a1a1a;
 }
 

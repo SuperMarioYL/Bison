@@ -64,19 +64,18 @@
 }
 
 .useCaseIcon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  display: inline-block;
-  animation: bounce 2s ease-in-out infinite;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.useCaseCard:hover .useCaseIcon {
+  transform: scale(1.08) rotate(-3deg);
 }
 
 .useCaseTitle {
@@ -116,17 +115,19 @@
 }
 
 .crossIcon {
-  font-size: 1rem;
+  display: inline-flex;
+  color: #ff453a;
 }
 
 .checkIcon {
-  font-size: 1rem;
+  display: inline-flex;
+  color: #34c759;
 }
 
 .comparisonDivider {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
   color: #0A84FF;
-  font-weight: 700;
   padding-top: 1.5rem;
 }
 

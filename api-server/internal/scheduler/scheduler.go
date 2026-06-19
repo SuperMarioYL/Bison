@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -87,8 +88,39 @@ func (s *Scheduler) GetExecutions(limit int) []service.TaskExecution {
 	return result
 }
 
+// safeExecute runs a task body with panic recovery so a single failing task can
+// never take down the whole api-server process.
+func (s *Scheduler) safeExecute(name string, fn func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("Scheduled task panicked and was recovered", "task", name, "panic", r)
+		}
+	}()
+	fn()
+}
+
+// sleepWithJitter waits a random duration in [0, max) to desynchronize task
+// firing across replicas, returning false if the scheduler is stopped meanwhile.
+func (s *Scheduler) sleepWithJitter(max time.Duration) bool {
+	if max <= 0 {
+		return true
+	}
+	timer := time.NewTimer(time.Duration(rand.Int63n(int64(max))))
+	defer timer.Stop()
+	select {
+	case <-s.stopCh:
+		return false
+	case <-timer.C:
+		return true
+	}
+}
+
 func (s *Scheduler) runBillingTask(ctx context.Context) {
 	defer s.wg.Done()
+
+	if !s.sleepWithJitter(60 * time.Second) {
+		return
+	}
 
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
@@ -98,7 +130,7 @@ func (s *Scheduler) runBillingTask(ctx context.Context) {
 		case <-s.stopCh:
 			return
 		case <-ticker.C:
-			s.executeBillingTask(ctx)
+			s.safeExecute("billing", func() { s.executeBillingTask(ctx) })
 		}
 	}
 }
@@ -130,6 +162,10 @@ func (s *Scheduler) executeBillingTask(ctx context.Context) {
 func (s *Scheduler) runAutoRechargeTask(ctx context.Context) {
 	defer s.wg.Done()
 
+	if !s.sleepWithJitter(60 * time.Second) {
+		return
+	}
+
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 
@@ -138,7 +174,7 @@ func (s *Scheduler) runAutoRechargeTask(ctx context.Context) {
 		case <-s.stopCh:
 			return
 		case <-ticker.C:
-			s.executeAutoRechargeTask(ctx)
+			s.safeExecute("auto_recharge", func() { s.executeAutoRechargeTask(ctx) })
 		}
 	}
 }
@@ -170,6 +206,10 @@ func (s *Scheduler) executeAutoRechargeTask(ctx context.Context) {
 func (s *Scheduler) runAlertTask(ctx context.Context) {
 	defer s.wg.Done()
 
+	if !s.sleepWithJitter(30 * time.Second) {
+		return
+	}
+
 	ticker := time.NewTicker(15 * time.Minute)
 	defer ticker.Stop()
 
@@ -178,7 +218,7 @@ func (s *Scheduler) runAlertTask(ctx context.Context) {
 		case <-s.stopCh:
 			return
 		case <-ticker.C:
-			s.executeAlertTask(ctx)
+			s.safeExecute("alert_check", func() { s.executeAlertTask(ctx) })
 		}
 	}
 }

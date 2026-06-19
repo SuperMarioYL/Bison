@@ -96,21 +96,22 @@ graph TB
 
 Choose one of the following installation methods:
 
-#### Option A: Using Helm Repository (Recommended)
+#### Option A: Using GHCR (Recommended - OCI Format)
 
 ```bash
-# Add Bison Helm repository
-helm repo add bison https://supermarioyl.github.io/Bison/charts/
-helm repo update
-
-# Install with default configuration
-helm install bison bison/bison --namespace bison-system --create-namespace
+# Install with default configuration directly from GitHub Container Registry
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
+  --namespace bison-system \
+  --create-namespace
 
 # Or customize installation
-helm install bison bison/bison \
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
   --namespace bison-system \
   --create-namespace \
-  --set opencost.url=http://opencost.opencost-system.svc:9003 \
+  --set dependencies.opencost.apiUrl=http://opencost.opencost.svc.cluster.local:9003 \
+  --set dependencies.opencost.enabled=true \
   --set auth.enabled=false
 ```
 
@@ -118,7 +119,7 @@ helm install bison bison/bison \
 
 ```bash
 # Download latest Helm chart
-VERSION=0.0.1
+VERSION=0.0.12
 wget https://github.com/SuperMarioYL/Bison/releases/download/v${VERSION}/bison-${VERSION}.tgz
 
 # Install
@@ -150,7 +151,7 @@ After installation, access Bison through:
 
 ```bash
 # Port-forward the Web UI
-kubectl port-forward -n bison-system svc/bison-webui 3000:80
+kubectl port-forward -n bison-system svc/bison-web 3000:80
 
 # Access at http://localhost:3000
 # Default credentials (if auth enabled):

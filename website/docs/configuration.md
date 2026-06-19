@@ -19,11 +19,11 @@ Bison is configured primarily through Helm values. You can customize the install
 | `auth.admin.password` | Admin password | `admin` | `changeme` |
 | `apiServer.replicaCount` | API server replicas | `2` | `3` |
 | `apiServer.image.repository` | API server image | `ghcr.io/supermarioyl/bison/api-server` | - |
-| `apiServer.image.tag` | API server image tag | `0.0.1` | `latest` |
+| `apiServer.image.tag` | API server image tag | `0.0.12` | `latest` |
 | `webUI.replicaCount` | Web UI replicas | `2` | `3` |
 | `webUI.image.repository` | Web UI image | `ghcr.io/supermarioyl/bison/web-ui` | - |
-| `webUI.image.tag` | Web UI image tag | `0.0.1` | `latest` |
-| `opencost.url` | OpenCost API endpoint | `http://opencost.opencost-system.svc:9003` | Custom URL |
+| `webUI.image.tag` | Web UI image tag | `0.0.12` | `latest` |
+| `dependencies.opencost.apiUrl` | OpenCost API endpoint | `http://opencost.opencost.svc.cluster.local:9003` | Custom URL |
 
 ### Example Custom Values
 
@@ -41,7 +41,7 @@ auth:
 apiServer:
   replicaCount: 3
   image:
-    tag: 0.0.1
+    tag: 0.0.12
   resources:
     requests:
       cpu: 200m
@@ -54,7 +54,7 @@ apiServer:
 webUI:
   replicaCount: 3
   image:
-    tag: 0.0.1
+    tag: 0.0.12
   resources:
     requests:
       cpu: 100m
@@ -64,8 +64,10 @@ webUI:
       memory: 256Mi
 
 # OpenCost Integration
-opencost:
-  url: http://opencost.opencost-system.svc:9003
+dependencies:
+  opencost:
+    enabled: true
+    apiUrl: http://opencost.opencost.svc.cluster.local:9003
 
 # Node Selection (optional)
 nodeSelector:
@@ -81,7 +83,8 @@ tolerations:
 Install with custom values:
 
 ```bash
-helm install bison bison/bison \
+helm install bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
   --namespace bison-system \
   --create-namespace \
   --values custom-values.yaml
@@ -254,7 +257,7 @@ Configure OpenCost connection:
 
 ```bash
 # Test OpenCost API
-kubectl port-forward -n opencost-system svc/opencost 9003:9003
+kubectl port-forward -n opencost svc/opencost 9003:9003
 curl http://localhost:9003/healthz
 
 # Test allocation API
@@ -266,8 +269,10 @@ curl http://localhost:9003/allocation/compute?window=1d
 If OpenCost is deployed in a different namespace or with a different service name:
 
 ```bash
-helm upgrade bison bison/bison \
-  --set opencost.url=http://my-opencost.custom-namespace.svc:9003 \
+helm upgrade bison oci://ghcr.io/supermarioyl/charts/bison \
+  --version 0.0.12 \
+  --set dependencies.opencost.apiUrl=http://my-opencost.custom-namespace.svc:9003 \
+  --set dependencies.opencost.enabled=true \
   --namespace bison-system
 ```
 
@@ -305,7 +310,7 @@ Additional configuration can be provided via environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `KUBECONFIG` | Path to kubeconfig file | In-cluster config |
-| `OPENCOST_URL` | OpenCost API URL | `http://opencost.opencost-system.svc:9003` |
+| `OPENCOST_URL` | OpenCost API URL | `http://opencost.opencost.svc.cluster.local:9003` |
 | `AUTH_ENABLED` | Enable authentication | `false` |
 | `LOG_LEVEL` | Logging level | `info` |
 | `BILLING_INTERVAL` | Billing calculation interval | `10m` |
