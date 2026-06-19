@@ -201,9 +201,12 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 		return err
 	}
 
-	// Map namespace to team
+	// Map namespace to team, and remember which teams are already suspended so we
+	// don't re-run scale-down/orphan-pod cleanup for them every billing cycle.
 	nsToTeam := make(map[string]string)
+	suspendedByName := make(map[string]bool)
 	for _, team := range teams {
+		suspendedByName[team.Name] = team.Suspended
 		projects, _ := s.projectSvc.ListByTeam(ctx, team.Name)
 		for _, project := range projects {
 			nsToTeam[project.Name] = team.Name
@@ -259,9 +262,13 @@ func (s *BillingService) ProcessBilling(ctx context.Context) error {
 
 			// Check if grace period has passed
 			if s.isGracePeriodExpired(config, overdueAt) {
-				logger.Warn("Grace period expired, suspending team", "team", teamName, "overdueAt", overdueAt)
-				if err := s.SuspendTeam(ctx, teamName); err != nil {
-					logger.Error("Failed to suspend team", "team", teamName, "error", err)
+				if suspendedByName[teamName] {
+					logger.Debug("Team already suspended; skipping re-suspend", "team", teamName)
+				} else {
+					logger.Warn("Grace period expired, suspending team", "team", teamName, "overdueAt", overdueAt)
+					if err := s.SuspendTeam(ctx, teamName); err != nil {
+						logger.Error("Failed to suspend team", "team", teamName, "error", err)
+					}
 				}
 			} else {
 				remaining := s.balanceSvc.CalculateGraceRemaining(overdueAt, config.GracePeriodValue, config.GracePeriodUnit)

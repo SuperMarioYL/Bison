@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.30] - 2026-06-19
+
+### Fixed — Idempotent suspension
+
+- `ProcessBilling` now skips re-suspending a team that is already suspended. Previously every billing cycle for an overdue, grace-expired team re-ran `SuspendTeam` (scale-down + orphan-pod deletion), which was wasteful and could delete pods a user legitimately created in the namespace.
+
 ## [0.0.29] - 2026-06-19
 
 ### Fixed — Auto-recharge validation
