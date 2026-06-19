@@ -14,6 +14,37 @@
 
 ---
 
+## 已落地版本（v0.0.12 → v0.0.26，按「每个功能一个小版本」迭代）
+
+| 版本 | 主题 | 内容 |
+|---|---|---|
+| 0.0.12 | 资金/前端/官网/文档 | ConfigMap 余额 RMW 加 `RetryOnConflict`；`Deduct` 返回写后余额；前端路由 lazy + echarts 分包 + ErrorBoundary；官网去 emoji 换 SVG + ProductShowcase；安装文档纠错；本路线图 |
+| 0.0.13 | 资金/并发 | 调度器 **leader election**（Lease），恢复 `replicaCount: 2`，scheduler 可重启 + 测试 |
+| 0.0.14 | 安全 | Helm Secret `lookup` 持久化，升级不再轮换 JWT/密码 |
+| 0.0.15 | 安全 | 登录 per-IP 限流 + `crypto/subtle` 常量时间比较 + 测试 |
+| 0.0.16 | 安全 | `CORS_ALLOWED_ORIGINS` 可配置 allowlist |
+| 0.0.17 | 资金 | `lastBilledAt` 时间戳门控，修计费窗口/Interval 不一致 + 防重启重扣 + 测试 |
+| 0.0.18 | 资金 | `CalculateDailyConsumption` 分母改实际跨度，修 ~6x 烧钱速率低估 + 测试 |
+| 0.0.19 | 性能 | 删 `ListTeams` 丢弃用量循环；`loadPrices` 每次计费读一次配置 |
+| 0.0.20 | 性能 | OpenCost 查询 30s TTL + 并发合并缓存 + race 测试 |
+| 0.0.21 | DevOps | release 加 **Test & Lint Gate**（vet/fmt/build/test -race + web）；修 `tslib` 幽灵依赖 |
+| 0.0.22 | 安全 | auth 开启时启动拒绝默认 JWT/密码 + 测试 |
+| 0.0.23 | 前端质量 | 13 处错误提取统一为 `getApiErrorMessage` |
+| 0.0.24 | 前端性能 | Auth/Theme Context value `useMemo` |
+| 0.0.25 | DevOps | `values.schema.json` 类型校验 + `kubeVersion >=1.22` |
+| 0.0.26 | DevOps | 可选 PDB / HPA / NetworkPolicy 模板 |
+
+> 已覆盖 P0 资金正确性与并发、安全基线、开箱即用/CI 门禁、热点性能、chart 健壮性与可用性等全部近期项与多数中期项。
+
+### 仍待办（多需活集群验证或产品决策，建议后续单独排期）
+
+- **后端规模化**：SharedInformer/lister 缓存热点 List、列表分页、per-request 与调度器超时、报表单次聚合查询、`GetCostTrend` 按桶日期映射、suspend/resume 二次缩容修复。
+- **前端**：NodeDetail echarts option `useMemo`、逐行 N+1 query 分页门、硬编码色→主题 token、`formatCurrency`/`currencySymbol`、dayjs 统一 bootstrap、i18n 层。
+- **安全/供应链**：RBAC 去 `clusterrolebindings` 写、onboarding SSH 入参校验、镜像 Trivy 扫描/SBOM/cosign 签名、基础镜像 digest 固定、Dependabot。
+- **架构/平台化（远期）**：余额持久化模型升级（ConfigMap → per-key patch / CRD）、money 整数最小单位、能力补全或下线（OIDC/Email/Excel-PDF）。
+
+---
+
 ## 优化主题
 
 ### 主题 1 · 资金正确性与并发安全
