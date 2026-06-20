@@ -5,6 +5,12 @@ All notable changes to the Bison project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.31] - 2026-06-20
+
+### Security — Onboarding SSH input validation
+
+- Node onboarding now validates the SSH target before it reaches the SSH layer: the host must be a valid IP address or DNS hostname, the port must be 1–65535, and the username must match a POSIX-style pattern. This rejects shell-metacharacter / injection-style inputs (e.g. `1.2.3.4;reboot`, `root;rm -rf /`). Added table-driven validation tests.
+
 ## [0.0.30] - 2026-06-19
 
 ### Fixed — Idempotent suspension

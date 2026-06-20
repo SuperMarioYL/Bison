@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
+	"regexp"
 	"sync"
 	"time"
 
@@ -18,6 +20,39 @@ import (
 
 // Ensure metav1 is used
 var _ = metav1.Now
+
+// SSH onboarding input validation: a username must be a normal POSIX-style name
+// and a host a valid IP or DNS name. This rejects shell-metacharacter / injection
+// style inputs before they reach the SSH layer.
+var (
+	sshUsernameRe = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_.-]{0,31}$`)
+	hostnameRe    = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
+)
+
+// validateSSHHost accepts a non-empty IP address or DNS hostname.
+func validateSSHHost(field, host string) error {
+	if host == "" {
+		return fmt.Errorf("%s is required", field)
+	}
+	if net.ParseIP(host) != nil || hostnameRe.MatchString(host) {
+		return nil
+	}
+	return fmt.Errorf("invalid %s %q: must be an IP address or hostname", field, host)
+}
+
+// validateSSHTarget validates host, port and username for an SSH endpoint.
+func validateSSHTarget(hostField, host string, port int, user string) error {
+	if err := validateSSHHost(hostField, host); err != nil {
+		return err
+	}
+	if port < 1 || port > 65535 {
+		return fmt.Errorf("invalid SSH port %d: must be 1-65535", port)
+	}
+	if !sshUsernameRe.MatchString(user) {
+		return fmt.Errorf("invalid SSH username %q", user)
+	}
+	return nil
+}
 
 const (
 	OnboardingJobsConfigMap = "bison-onboarding-jobs"
@@ -105,6 +140,11 @@ func (s *OnboardingService) StartOnboarding(ctx context.Context, req *Onboarding
 	// Set defaults
 	if req.SSHPort == 0 {
 		req.SSHPort = 22
+	}
+
+	// Validate the SSH target before it reaches the SSH layer.
+	if err := validateSSHTarget("nodeIP", req.NodeIP, req.SSHPort, req.SSHUsername); err != nil {
+		return nil, err
 	}
 
 	// Validate authentication
