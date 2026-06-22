@@ -1,863 +1,218 @@
-<p align="center">
-  <img src="docs/images/logo.png" alt="Bison Logo" width="120" />
-</p>
+<div align="right"><sub><b>English</b>&nbsp;&nbsp;⇄&nbsp;&nbsp;<a href="./README.zh-CN.md">简体中文</a></sub></div>
 
-<h1 align="center">Bison</h1>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./assets/hero-light.svg">
+  <img src="./assets/hero-light.svg" width="880" alt="Bison — metered, multi-tenant GPU for Kubernetes">
+</picture>
 
-<p align="center">
-  <strong>Enterprise GPU Resource Billing & Multi-Tenant Management Platform</strong>
-</p>
-
-<p align="center">
-  <a href="./docs/README_CN.md">中文文档</a> •
-  <a href="./docs/architecture.md">Architecture</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#features">Features</a>
-</p>
+<p><sub>Bison turns a shared Kubernetes GPU cluster into a metered, multi-tenant platform: every team gets an isolated quota and a <strong>prepaid balance</strong>, usage is priced and deducted hourly, and a team that runs dry is auto-suspended — all without an external database.</sub></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/kubernetes-1.22+-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes" />
-  <img src="https://img.shields.io/badge/go-1.24+-00ADD8?logo=go&logoColor=white" alt="Go" />
-  <img src="https://img.shields.io/badge/react-18+-61DAFB?logo=react&logoColor=white" alt="React" />
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-0071E3" alt="License: MIT"></a>
+  <a href="https://github.com/SuperMarioYL/Bison/releases"><img src="https://img.shields.io/github/v/release/SuperMarioYL/Bison?color=5E5CE6" alt="Latest release"></a>
+  <a href="https://github.com/SuperMarioYL/Bison/actions/workflows/build-test.yml"><img src="https://github.com/SuperMarioYL/Bison/actions/workflows/build-test.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white" alt="Go 1.24">
+  <img src="https://img.shields.io/badge/kubernetes-1.22+-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes 1.22+">
+  <img src="https://img.shields.io/badge/state-ConfigMaps%20only-10A37F" alt="zero external database">
 </p>
 
----
+> Shared GPU clusters fail the same way everywhere: quotas are hand-edited per namespace, chargeback lives in a spreadsheet, and the bill arrives a month after the budget was already blown. Bison closes the loop in the cluster — **Capsule** isolates teams, **OpenCost** prices what they actually consumed, and an hourly scheduler deducts from each team's wallet and suspends the ones that hit zero.
 
-## The GPU Management Challenge
+## <img src="https://api.iconify.design/tabler:target-arrow.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Why Bison
 
-Managing shared GPU clusters across multiple teams creates critical operational and financial challenges:
+Bison folds four normally-separate tools into one control plane:
 
-**For Platform Administrators:**
-- How do you fairly allocate expensive GPU resources across competing teams?
-- How do you prevent resource hogging while ensuring everyone gets their fair share?
-- How do you track who's using what and implement accurate chargeback?
-- How do you maintain strict multi-tenant isolation without complex manual configuration?
+- **Kubernetes-native multi-tenancy** — teams are [Capsule](https://capsule.clastix.io) Tenants, projects are namespaces; quotas and node isolation are enforced by an admission webhook, not by convention.
+- **Real-time cost tracking** — [OpenCost](https://www.opencost.io) + Prometheus attribute spend per pod / namespace / team, so chargeback is measured, not estimated.
+- **Prepaid wallets with auto-deduction** — each team holds a balance; the hourly scheduler meters usage, applies your pricing, deducts, alerts on low balance, and auto-suspends at zero.
+- **Zero external dependencies** — all state (balances, billing config) lives in Kubernetes ConfigMaps, etcd-backed. No Postgres, no Redis, nothing to back up separately.
 
-**For Finance & Budget Teams:**
-- How do you implement automated chargeback for GPU usage without manual accounting?
-- How do you prevent budget overruns before they happen?
-- How do you generate accurate cost reports for internal billing?
+|  | Without Bison | With Bison |
+|---|---|---|
+| **Quotas** | hand-edited `ResourceQuota` per namespace | per-team quota, webhook-enforced |
+| **Billing** | spreadsheet, reconciled monthly | priced & deducted hourly in-cluster |
+| **Isolation** | teams compete on shared nodes | shared *or* dedicated node pools per team |
+| **Budget control** | overruns discovered after the fact | low-balance alerts + auto-suspend |
+| **Stack** | quota tool + cost tool + billing system | one chart, one API, one dashboard |
 
-**For Development Teams:**
-- How do you get predictable, isolated access to GPU resources?
-- How do you know when you're approaching your budget limits?
-- How do you avoid impacting other teams' workloads?
+## <img src="https://api.iconify.design/tabler:layout-grid.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Features
 
-**Traditional Approach:**
-- Manual quota configuration per namespace
-- Excel-based billing calculations
-- No real-time cost visibility
-- Complex multi-tool setup (quota management + cost tracking + billing system)
-- Frequent resource conflicts and budget surprises
+| Capability | What it does |
+|---|---|
+| **Multi-tenant management** | Capsule-powered team isolation, optional OIDC login |
+| **Usage-based billing** | configurable per-resource pricing (CPU / memory / GPU / any K8s resource) |
+| **Dynamic resource quotas** | CPU, memory, GPU, or arbitrary extended resources per team |
+| **Team balance & wallet** | prepaid balance with hourly auto-deduction |
+| **Auto-recharge** | scheduled top-ups (weekly / monthly) with amount validation |
+| **Balance alerts** | multi-channel notifications — Webhook, DingTalk, WeCom |
+| **Auto-suspend / resume** | idempotent suspend at zero balance, resume on recharge |
+| **Usage reports** | per-team / per-project analytics with CSV export |
+| **Audit logging** | full operation history |
 
-### Bison's Integrated Solution
+## <img src="https://api.iconify.design/tabler:topology-star-3.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Architecture
 
-```mermaid
-graph TB
-    subgraph WITHOUT["Without Bison"]
-        P1[❌ Manual Quota Management<br/>Per-namespace configuration]
-        P2[❌ Spreadsheet Billing<br/>Manual calculations & reports]
-        P3[❌ No Resource Isolation<br/>Teams compete for resources]
-        P4[❌ Budget Overruns<br/>No proactive alerts]
-        P5[❌ Complex Tooling<br/>Multiple systems to manage]
-    end
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/atlas-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./assets/atlas-light.svg">
+  <img src="./assets/atlas-light.svg" width="880" alt="Architecture: users → Bison control plane → core services → Capsule / OpenCost / Prometheus / ConfigMaps, with an hourly billing scheduler">
+</picture>
 
-    subgraph WITH["With Bison"]
-        S1[✅ Automated Team Quotas<br/>Capsule-powered isolation]
-        S2[✅ Real-Time Billing<br/>OpenCost integration]
-        S3[✅ True Multi-Tenancy<br/>Shared/Exclusive modes]
-        S4[✅ Proactive Alerts<br/>Balance monitoring & auto-suspend]
-        S5[✅ Unified Platform<br/>Single pane of glass]
-    end
+- **Control plane** — a React + Ant Design UI and a Go (Gin) REST API under `/api/v1`. Services are injected into handlers; the four core services are Tenant, Quota, Billing, and Balance.
+- **Multi-tenancy** — Bison creates Capsule **Tenants** (a team) that own **namespaces** (projects). In *exclusive* mode Capsule injects a `nodeSelector` so a team's pods only land on its dedicated node pool; in *shared* mode pods run on a common pool under the same quota.
+- **Cost & metering** — the billing scheduler queries OpenCost's `/allocation` endpoint hourly for per-namespace CPU/memory/GPU hours, prices them, and deducts from the team's balance. OpenCost reads metrics from Prometheus.
+- **Storage** — balances and billing config are ConfigMaps (`bison-team-balances`, `bison-billing-config`), persisted in etcd. There is no external database to provision, scale, or back up.
 
-    P1 -.Transform.-> S1
-    P2 -.Transform.-> S2
-    P3 -.Transform.-> S3
-    P4 -.Transform.-> S4
-    P5 -.Transform.-> S5
+## <img src="https://api.iconify.design/tabler:package.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Install
 
-    style WITHOUT fill:#ffebee
-    style WITH fill:#e8f5e9
-    style S1 fill:#4caf50,color:#fff
-    style S2 fill:#4caf50,color:#fff
-    style S3 fill:#4caf50,color:#fff
-    style S4 fill:#4caf50,color:#fff
-    style S5 fill:#4caf50,color:#fff
-```
+**Prerequisites:** Kubernetes ≥ 1.22, Helm ≥ 3.8 (for OCI charts), `kubectl` configured.
 
-**Bison combines:**
-- 🔐 **Kubernetes-native multi-tenancy** (Capsule) - True team isolation with shared or exclusive node pools
-- 💰 **Real-time cost tracking** (OpenCost + Prometheus) - Per-pod, per-namespace, per-team cost visibility
-- 💳 **Automated billing & budgets** - Prepaid balances, auto-deduction, low-balance alerts, and auto-suspension
-- 📊 **Unified dashboard** - Single interface for admins, team leaders, and finance teams
-- 🔧 **Zero external dependencies** - All data stored in Kubernetes ConfigMaps (etcd-backed)
-
-**Result:** Deploy once, get complete GPU resource management with automated billing in under 30 minutes.
-
----
-
-## See Bison in Action
-
-### 🎯 Real-Time Resource Dashboard
-
-<p align="center">
-  <img src="docs/images/ui-dashboard.png" width="90%" alt="Bison Dashboard" />
-</p>
-
-**What you see:**
-- **Cluster Overview** - Total teams, projects, resource pools, and quotas at a glance
-- **Resource Utilization** - Visual breakdown showing which teams are consuming resources
-- **7-Day Cost Trends** - Historical cost data to identify spending patterns
-- **Top 5 Cost Rankings** - Quickly identify heavy GPU consumers
-- **Team Budget Status** - Real-time balance monitoring with color-coded alerts
-
-**Who benefits:**
-- **Platform Administrators** get instant visibility into cluster health and usage patterns
-- **Finance Teams** can track costs in real-time without waiting for monthly reports
-- **Team Leaders** can compare their usage against other teams
-
----
-
-### 💼 Team Management & Budget Monitoring
-
-<p align="center">
-  <img src="docs/images/ui-team.png" width="90%" alt="Team Management" />
-</p>
-
-**What you see:**
-- **Team List** with real-time status indicators:
-  - 🟢 Green balance = Healthy budget
-  - 🟡 Yellow balance = Approaching threshold
-  - 🔴 Red balance = Low balance or suspended
-- **Resource Allocation** - CPU/Memory/GPU quotas per team (e.g., "cpu 0/10" means 0 used out of 10 allocated)
-- **Project Count** - Number of namespaces/projects under each team
-- **Quick Actions** - Edit quotas, recharge balance, or delete team with one click
-
-**Who benefits:**
-- **Team Leaders** monitor their budget status and resource usage at a glance
-- **Administrators** manage multiple teams from a single unified view
-- **Finance Teams** see which teams need recharging
-
----
-
-### 💰 Flexible Billing Configuration
-
-<p align="center">
-  <img src="docs/images/ui-billing.png" width="90%" alt="Billing Configuration" />
-</p>
-
-**What you see:**
-- **Per-Resource Pricing** - Set custom prices for CPU (per core-hour), Memory (per GB-hour), GPU (per GPU-hour)
-- **Currency Selection** - Support for CNY, USD, EUR, and other currencies
-- **Enable/Disable Toggle** - Turn billing on/off for specific resources with one click
-- **Billing Rules** - Define how resources are metered (hourly, daily, etc.)
-- **Alert Thresholds** - Configure when to send low-balance warnings
-
-**Who benefits:**
-- **Finance Teams** align cloud costs with internal chargeback policies
-- **Administrators** adjust pricing based on actual hardware costs
-- **Budget Managers** set appropriate warning thresholds to prevent overruns
-
----
-
-## Features
-
-### Core Capabilities
-
-```
-✅ Multi-Tenant Management     Capsule-powered team isolation with OIDC
-✅ Real-Time Billing           Usage-based billing with configurable pricing
-✅ Dynamic Resource Quotas     CPU, Memory, GPU, or any K8s resource
-✅ Team Balance & Wallet       Prepaid balance with auto-deduction
-✅ Auto-Recharge               Scheduled balance top-ups (weekly/monthly)
-✅ Balance Alerts              Multi-channel notifications (Webhook, DingTalk, WeChat)
-✅ Usage Reports               Team/project analytics with export
-✅ Audit Logging               Complete operation history
-```
-
-### Architecture Highlights
-
-```mermaid
-graph TB
-    subgraph USER_LAYER[User Layer]
-        UI[Web UI<br/>React + Ant Design]
-        API[REST API<br/>Go + Gin]
-    end
-
-    subgraph CORE[Core Services]
-        BS[Billing Service]
-        TS[Tenant Service]
-        QS[Quota Service]
-    end
-
-    subgraph K8S[Kubernetes Layer]
-        CA[Capsule<br/>Multi-Tenancy]
-        OC[OpenCost<br/>Cost Tracking]
-        PR[Prometheus<br/>Metrics]
-    end
-
-    subgraph DATA[Data Layer]
-        CM[ConfigMaps<br/>Zero Database]
-    end
-
-    UI --> API
-    API --> BS & TS & QS
-    BS --> OC
-    TS --> CA
-    QS --> CA
-    BS & TS --> CM
-    OC --> PR
-```
-
-## Quick Start
-
-### Prerequisites
-
-- Kubernetes 1.22+
-- Helm 3.0+
-- kubectl configured
-
-### 1. Install Dependencies
+**1 · Install the dependencies** (Capsule, Prometheus, OpenCost):
 
 ```bash
-# Install Capsule (multi-tenancy)
+# Multi-tenancy
 helm repo add projectcapsule https://projectcapsule.github.io/charts
 helm install capsule projectcapsule/capsule -n capsule-system --create-namespace
 
-# Install Prometheus + OpenCost
+# Metrics
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
 
+# Cost tracking
 helm repo add opencost https://opencost.github.io/opencost-helm-chart
 helm install opencost opencost/opencost -n opencost --create-namespace \
   --set opencost.prometheus.internal.serviceName=prometheus-kube-prometheus-prometheus \
   --set opencost.prometheus.internal.namespaceName=monitoring
 ```
 
-### 2. Deploy Bison
-
-#### Option A: Using GHCR (Recommended - OCI Format)
+**2 · Deploy Bison** — the chart ships as an OCI artifact on GHCR:
 
 ```bash
-# Install directly from GitHub Container Registry
 helm install bison oci://ghcr.io/supermarioyl/charts/bison \
-  --namespace bison-system \
-  --create-namespace \
-  --set auth.enabled=true \
-  --version 0.0.12
-```
-
-> **Note:** Requires Helm >= 3.8.0 for OCI support
-
-#### Option B: From GitHub Release
-
-```bash
-# Download Helm chart from GitHub Release
-wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.12/bison-0.0.12.tgz
-
-# Install from downloaded chart
-helm install bison bison-0.0.12.tgz \
-  --namespace bison-system \
-  --create-namespace \
+  --version 0.0.31 \
+  --namespace bison-system --create-namespace \
   --set auth.enabled=true
 ```
 
-#### Option C: From Source
+<details>
+<summary>Other install methods</summary>
 
 ```bash
-# Clone and deploy from source
-git clone https://github.com/SuperMarioYL/Bison.git
-cd Bison
+# From a GitHub Release tarball
+wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.31/bison-0.0.31.tgz
+helm install bison bison-0.0.31.tgz -n bison-system --create-namespace
 
-helm install bison ./deploy/charts/bison \
-  --namespace bison-system \
-  --create-namespace \
-  --set auth.enabled=true
+# From source
+git clone https://github.com/SuperMarioYL/Bison.git && cd Bison
+helm install bison ./deploy/charts/bison -n bison-system --create-namespace --set auth.enabled=true
 ```
 
-### 3. Access the Platform
+Container images: `ghcr.io/supermarioyl/bison/api-server` and `ghcr.io/supermarioyl/bison/web-ui` (`linux/amd64` + `linux/arm64`).
+</details>
+
+## <img src="https://api.iconify.design/tabler:player-play.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Quickstart
 
 ```bash
-# Get admin password
+# 1. Read the auto-generated admin password
 kubectl get secret bison-auth -n bison-system -o jsonpath='{.data.password}' | base64 -d
 
-# Port forward
+# 2. Port-forward the API (and the UI on :80)
 kubectl port-forward svc/bison-api 8080:8080 -n bison-system
 
-# Access API
+# 3. Confirm it's live
 curl http://localhost:8080/healthz
 ```
 
----
+Then open the Web UI, create your first team with a quota and an initial balance, hand its kubeconfig to the team lead, and watch usage meter against the wallet on the dashboard.
 
-## User Journeys
+## <img src="https://api.iconify.design/tabler:terminal-2.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Usage
 
-Bison serves different user roles with tailored workflows. Here's how each persona uses the platform:
+**Core model.** A **team** is a Capsule Tenant with a quota, a balance, and a billing policy. A **project** is a namespace owned by that team. Developers deploy ordinary Kubernetes workloads into the project namespace — Capsule enforces the quota and (in exclusive mode) the node placement at admission time.
 
-### 👨‍💼 Platform Administrator: Setting Up Multi-Tenant GPU Cluster
+**Quota enforcement is transparent to developers.** A user submits a normal pod; Capsule rewrites it to honour the team's isolation:
 
-**Scenario:** Sarah is a platform engineer setting up a shared GPU cluster for 5 ML teams.
-
-```mermaid
-flowchart TD
-    Start([Admin Logs In]) --> ViewDash[View Dashboard<br/>Check cluster status]
-    ViewDash --> CreateTeam[Create New Team]
-
-    CreateTeam --> SetName[Set Team Info<br/>Name: ml-team<br/>Owner: team-lead@company.com]
-    SetName --> ChooseMode{Resource<br/>Mode?}
-
-    ChooseMode -->|Shared Pool| SharedConfig[Use Shared Nodes<br/>Cost-effective for small teams]
-    ChooseMode -->|Exclusive| ExclusiveConfig[Bind Dedicated Nodes<br/>Full performance isolation]
-
-    SharedConfig --> SetQuota[Set Resource Quotas<br/>10 GPUs, 100 CPU cores<br/>500Gi Memory]
-    ExclusiveConfig --> SelectNodes[Select Dedicated Nodes<br/>Label: bison.io/pool=team-ml]
-    SelectNodes --> SetQuota
-
-    SetQuota --> InitBalance[Set Initial Balance<br/>$10,000]
-    InitBalance --> ConfigAlerts[Configure Alerts<br/>Warning: 20%<br/>Critical: 10%]
-
-    ConfigAlerts --> TeamCreated[✅ Team Created]
-    TeamCreated --> SendKubeconfig[Generate & Send<br/>Kubeconfig to Team Leader]
-    SendKubeconfig --> Monitor[Monitor Usage<br/>via Dashboard]
-
-    Monitor --> CheckAlerts{Low Balance<br/>Alert?}
-    CheckAlerts -->|Yes| ApproveRecharge[Approve Recharge<br/>Request]
-    CheckAlerts -->|No| Continue[Continue Monitoring]
-
-    ApproveRecharge --> Monitor
-    Continue --> Monitor
-
-    style Start fill:#4caf50,color:#fff
-    style TeamCreated fill:#8bc34a,color:#fff
-    style CheckAlerts fill:#ff9800,color:#fff
-```
-
-**Key Actions:**
-1. Create team with appropriate resource mode (shared vs exclusive)
-2. Set quotas based on team size and workload requirements
-3. Initialize balance and configure alert thresholds
-4. Provide team leader with kubeconfig for namespace access
-5. Monitor cluster-wide metrics and respond to alerts
-
----
-
-### 👥 Team Leader: Managing Team Resources & Budget
-
-**Scenario:** Mike leads the Computer Vision team and needs to manage budgets across multiple projects.
-
-```mermaid
-flowchart TD
-    Start([Team Leader Logs In]) --> ViewTeam[View Team Dashboard]
-    ViewTeam --> CheckBalance[Check Current Balance<br/>$5,234 remaining<br/>Burn rate: $120/day]
-
-    CheckBalance --> Decision{What to do?}
-
-    Decision -->|Create Project| NewProject[Create New Project]
-    Decision -->|Monitor Costs| ViewReports[View Usage Reports]
-    Decision -->|Low Balance| RequestRecharge[Request Recharge]
-
-    NewProject --> ProjName[Set Project Name<br/>e.g., face-recognition]
-    ProjName --> AllocQuota[Allocate from Team Quota<br/>3 GPUs, 20 CPU cores]
-    AllocQuota --> AssignMembers[Assign Team Members]
-    AssignMembers --> ProjCreated[✅ Project Created<br/>New namespace ready]
-    ProjCreated --> NotifyDev[Notify Developers]
-
-    ViewReports --> SelectPeriod[Select Time Range<br/>Last 7 days]
-    SelectPeriod --> Breakdown[View Cost Breakdown<br/>By project/resource type]
-    Breakdown --> Export[Export to CSV<br/>Share with finance]
-
-    RequestRecharge --> FillAmount[Enter Amount: $10,000<br/>Add reason/PO number]
-    FillAmount --> SubmitRequest[Submit to Admin]
-    SubmitRequest --> WaitApproval{Approved?}
-    WaitApproval -->|Yes| BalanceUpdated[✅ Balance Updated]
-    WaitApproval -->|No| ReviseRequest[Revise & Resubmit]
-
-    BalanceUpdated --> SetAutoRecharge[Optional: Enable Auto-recharge<br/>Monthly: $8,000]
-
-    style Start fill:#2196f3,color:#fff
-    style ProjCreated fill:#8bc34a,color:#fff
-    style WaitApproval fill:#ff9800,color:#fff
-    style BalanceUpdated fill:#4caf50,color:#fff
-```
-
-**Key Actions:**
-1. Monitor team balance and consumption rate daily
-2. Create projects and allocate quotas to sub-teams
-3. Request recharges before balance runs out
-4. View detailed cost breakdowns by project
-5. (Optional) Set up auto-recharge for predictable budgets
-
----
-
-### 👨‍💻 Developer: Deploying GPU Workload
-
-**Scenario:** Alex is a data scientist deploying a GPU training job.
-
-```mermaid
-flowchart TD
-    Start([Developer Receives<br/>Kubeconfig]) --> SetContext[Set kubectl Context<br/>kubectl config use-context ml-training]
-
-    SetContext --> WriteYAML[Write Job Manifest<br/>Request 2 GPUs, 8 CPU cores]
-    WriteYAML --> ApplyJob[kubectl apply -f job.yaml]
-
-    ApplyJob --> K8sValidation{Kubernetes<br/>Validation}
-
-    K8sValidation -->|Syntax Error| FixYAML[Fix YAML Syntax]
-    FixYAML --> ApplyJob
-
-    K8sValidation -->|OK| CapsuleCheck{Capsule<br/>Quota Check}
-
-    CapsuleCheck -->|Quota Exceeded| QuotaError[❌ ERROR: Quota Exceeded<br/>requested: 2 GPU<br/>available: 0 GPU]
-    QuotaError --> ContactLead[Contact Team Leader<br/>Request more quota]
-    ContactLead --> WaitQuota[Wait for Quota Increase]
-    WaitQuota --> ApplyJob
-
-    CapsuleCheck -->|OK| Scheduled[✅ Pod Scheduled]
-    Scheduled --> NodeSelect{Resource<br/>Mode?}
-
-    NodeSelect -->|Shared| SharedNode[Runs on Shared Pool<br/>Might share node with other teams]
-    NodeSelect -->|Exclusive| ExclusiveNode[Runs on Team's Dedicated Nodes<br/>Full isolation]
-
-    SharedNode --> Running[Pod Running]
-    ExclusiveNode --> Running
-
-    Running --> BisonBilling[Bison Tracks Cost<br/>Real-time deduction]
-    BisonBilling --> MonitorJob[Monitor via kubectl logs<br/>Check cost in Dashboard]
-
-    MonitorJob --> JobComplete{Job<br/>Complete?}
-    JobComplete -->|No| MonitorJob
-    JobComplete -->|Yes| CleanUp[kubectl delete job<br/>Stop billing]
-
-    CleanUp --> TotalCost[Final Cost: $15.60<br/>Deducted from team balance]
-
-    style Start fill:#9c27b0,color:#fff
-    style QuotaError fill:#f44336,color:#fff
-    style Scheduled fill:#4caf50,color:#fff
-    style Running fill:#8bc34a,color:#fff
-    style TotalCost fill:#2196f3,color:#fff
-```
-
-**Key Actions:**
-1. Receive kubeconfig from team leader
-2. Write Kubernetes manifest (Job/Pod) with GPU requests
-3. Deploy workload - Capsule automatically enforces quotas
-4. Monitor job progress and cost accumulation
-5. Clean up resources after job completes to stop billing
-
-**Resource Isolation in Action:**
-- User's pods are automatically scheduled according to team's resource mode
-- In **Exclusive Mode**: Capsule injects `nodeSelector: {bison.io/pool: team-ml}` - pods only run on team's dedicated nodes
-- In **Shared Mode**: Pods can run on any node in the shared pool
-- Quota enforcement prevents over-allocation regardless of mode
-
----
-
-## How It Works
-
-### System Architecture & Dependencies
-
-Bison integrates seamlessly with the Kubernetes ecosystem, leveraging proven open-source components:
-
-```mermaid
-graph TB
-    subgraph BISON[Bison Platform]
-        style "Bison Platform" fill:#e3f2fd
-        BISON_UI[Bison Web UI<br/>React + Ant Design]
-        BISON_API[Bison API Server<br/>Go + Gin]
-        BISON_SCHED[Billing Scheduler<br/>Hourly Jobs]
-    end
-
-    subgraph K8S_CORE[Kubernetes Core]
-        style "Kubernetes Core" fill:#fff3e0
-        K8S_API[Kubernetes API Server]
-        ETCD[etcd<br/>ConfigMaps Storage]
-    end
-
-    subgraph TENANT[Multi-Tenancy Layer]
-        style "Multi-Tenancy Layer" fill:#f3e5f5
-        CAPSULE[Capsule Controller]
-        TENANT_CRD[Tenant CRDs]
-    end
-
-    subgraph COST[Cost Tracking Stack]
-        style "Cost Tracking Stack" fill:#e8f5e9
-        OPENCOST[OpenCost]
-        PROM[Prometheus]
-        NODE_EXP[Node Exporter]
-        KUBE_STATE[kube-state-metrics]
-    end
-
-    subgraph ALERT[Alerting (Optional)]
-        style "Alerting (Optional)" fill:#fce4ec
-        WEBHOOK[Webhook]
-        DINGTALK[DingTalk]
-        WECHAT[WeChat Work]
-    end
-
-    BISON_UI -->|HTTPS| BISON_API
-    BISON_API -->|Create/Update Tenants| CAPSULE
-    BISON_API -->|Read/Write ConfigMaps| K8S_API
-    BISON_API -->|Query Costs| OPENCOST
-
-    BISON_SCHED -->|Hourly Billing| OPENCOST
-    BISON_SCHED -->|Update Balances| K8S_API
-    BISON_SCHED -->|Send Alerts| WEBHOOK
-    BISON_SCHED -.->|Optional| DINGTALK
-    BISON_SCHED -.->|Optional| WECHAT
-
-    CAPSULE -->|Watch/Reconcile| TENANT_CRD
-    CAPSULE -->|Create Namespaces| K8S_API
-
-    K8S_API -->|Persist Data| ETCD
-
-    OPENCOST -->|Query Metrics| PROM
-    PROM -->|Scrape| NODE_EXP
-    PROM -->|Scrape| KUBE_STATE
-
-    style BISON_API fill:#4caf50,color:#fff
-    style BISON_UI fill:#2196f3,color:#fff
-    style CAPSULE fill:#ff9800,color:#fff
-    style OPENCOST fill:#9c27b0,color:#fff
-    style PROM fill:#e65100,color:#fff
-```
-
-**Key Integration Points:**
-- **Kubernetes API** - All Bison data stored in ConfigMaps (zero external database)
-- **Capsule** - Provides multi-tenant isolation; team = Tenant, project = Namespace
-- **OpenCost** - Tracks per-pod, per-namespace resource costs
-- **Prometheus** - Provides metrics for OpenCost cost calculation
-- **Alert Channels** - Flexible notification via Webhook, DingTalk, or WeChat
-
----
-
-### Resource Isolation Explained
-
-Bison uses **Capsule** to enforce strict resource isolation between teams. Here's how it works:
-
-```mermaid
-graph TB
-    subgraph K8S_CLUSTER[Kubernetes Cluster]
-        subgraph TEAM_A[Team A (Exclusive Mode)]
-            style "Team A (Exclusive Mode)" fill:#e3f2fd
-            T1[Capsule Tenant: team-ml]
-            T1_NS1[Namespace: ml-training<br/>ResourceQuota: 10 GPU]
-            T1_NS2[Namespace: ml-inference<br/>ResourceQuota: 5 GPU]
-            T1_POD1[Pod: trainer-1<br/>GPU: 2]
-            T1_POD2[Pod: serve-1<br/>GPU: 1]
-
-            T1 --> T1_NS1
-            T1 --> T1_NS2
-            T1_NS1 --> T1_POD1
-            T1_NS2 --> T1_POD2
-        end
-
-        subgraph TEAM_B[Team B (Shared Mode)]
-            style "Team B (Shared Mode)" fill:#fce4ec
-            T2[Capsule Tenant: team-cv]
-            T2_NS1[Namespace: cv-research<br/>ResourceQuota: 5 GPU]
-            T2_POD1[Pod: detector-1<br/>GPU: 2]
-
-            T2 --> T2_NS1
-            T2_NS1 --> T2_POD1
-        end
-
-        subgraph NODES[Node Pools]
-            style "Node Pools" fill:#f3e5f5
-            N1[Node 1<br/>label: bison.io/pool=team-ml<br/>GPUs: 4]
-            N2[Node 2<br/>label: bison.io/pool=team-ml<br/>GPUs: 4]
-            N3[Node 3<br/>label: bison.io/pool=shared<br/>GPUs: 8]
-            N4[Node 4<br/>label: bison.io/pool=shared<br/>GPUs: 8]
-        end
-    end
-
-    T1_POD1 -.Scheduled ONLY on.-> N1
-    T1_POD2 -.Scheduled ONLY on.-> N2
-    T2_POD1 -.Scheduled on.-> N3
-    T2_POD1 -.Scheduled on.-> N4
-
-    style T1 fill:#2196f3,color:#fff
-    style T2 fill:#e91e63,color:#fff
-    style N1 fill:#4caf50,color:#fff
-    style N2 fill:#4caf50,color:#fff
-    style N3 fill:#ff9800,color:#fff
-    style N4 fill:#ff9800,color:#fff
-```
-
-**Isolation Mechanisms:**
-
-| Isolation Type | Implementation | Benefit |
-|----------------|----------------|---------|
-| **Namespace** | Capsule Tenant owns namespaces | Teams can only create/access their own namespaces |
-| **Compute** | ResourceQuota per Tenant | Teams cannot exceed allocated CPU/Memory/GPU |
-| **Node (Exclusive)** | NodeSelector injection | Team's pods ONLY run on dedicated nodes |
-| **Node (Shared)** | Shared pool with quotas | Cost-effective for smaller teams |
-| **Network (Optional)** | NetworkPolicies | Prevent cross-team pod communication |
-| **Billing** | Separate balance per team | One team's spending doesn't affect others |
-
-**How Capsule Enforces Isolation:**
-1. **Admission Webhook** - Intercepts all pod creation requests
-2. **Quota Validation** - Checks if team has available quota (CPU/GPU/Memory)
-3. **NodeSelector Injection** - Automatically adds node labels for exclusive teams
-4. **Rejection** - Blocks requests that exceed quota or violate policies
-
-**Example:**
 ```yaml
-# Developer creates this simple pod
+# Developer applies this into namespace ml-training (owned by team-ml)
 apiVersion: v1
 kind: Pod
-metadata:
-  name: my-job
-  namespace: ml-training  # Owned by team-ml
+metadata: { name: trainer, namespace: ml-training }
 spec:
   containers:
   - name: trainer
     image: pytorch:latest
-    resources:
-      requests:
-        nvidia.com/gpu: 2
+    resources: { requests: { nvidia.com/gpu: 2 } }
 
-# Capsule automatically transforms it to:
-# (adds nodeSelector for exclusive mode)
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-job
-  namespace: ml-training
-spec:
-  nodeSelector:
-    bison.io/pool: team-ml  # Injected by Capsule!
-  containers:
-  - name: trainer
-    image: pytorch:latest
-    resources:
-      requests:
-        nvidia.com/gpu: 2
+# Capsule admission webhook injects the team's node pool (exclusive mode):
+#   spec.nodeSelector: { bison.io/pool: team-ml }
+# and rejects the pod outright if the team's GPU quota is exhausted.
 ```
 
----
-
-### Billing Flow
-
-```mermaid
-sequenceDiagram
-    participant S as Scheduler
-    participant OC as OpenCost
-    participant BS as Billing Service
-    participant CM as ConfigMaps
-    participant A as Alert Service
-
-    loop Every Hour
-        S->>OC: Query namespace costs
-        OC-->>S: Usage data (CPU/Memory/GPU hours)
-        S->>BS: Calculate billing
-        BS->>CM: Deduct from team balance
-
-        alt Balance < Threshold
-            BS->>A: Trigger low balance alert
-            A->>A: Send notifications
-        end
-
-        alt Balance < 0
-            BS->>BS: Suspend team workloads
-        end
-    end
-```
-
-### Team Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> Created: Create Team
-    Created --> Active: Initial Recharge
-    Active --> Active: Normal Usage
-    Active --> Warning: Balance < Threshold
-    Warning --> Active: Recharge
-    Warning --> Suspended: Balance ≤ 0
-    Suspended --> Active: Recharge
-    Suspended --> [*]: Delete Team
-```
-
-## Configuration
-
-### Key Settings
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `auth.enabled` | Enable authentication | `false` |
-| `auth.admin.username` | Admin username | `admin` |
-| `apiServer.replicaCount` | API server replicas | `2` |
-| `dependencies.opencost.apiUrl` | OpenCost API endpoint | `http://opencost.opencost:9003` |
-
-### Billing Configuration
-
-Configure pricing through the Web UI or API:
+**Billing config** is set per resource through the UI or API — pricing is `price × usage`, metered hourly:
 
 ```json
 {
   "enabled": true,
   "currency": "USD",
-  "pricing": {
-    "cpu": 0.05,
-    "memory": 0.01,
-    "nvidia.com/gpu": 2.50
-  },
+  "pricing": { "cpu": 0.05, "memory": 0.01, "nvidia.com/gpu": 2.50 },
   "billingInterval": "hourly"
 }
 ```
 
-## Installation Details
+Each hour the scheduler meters every namespace, deducts the cost from the owning team's balance, fires a low-balance alert past your threshold, and suspends the team's workloads once the balance reaches zero — resuming automatically on the next recharge.
 
-### Docker Images
+## <img src="https://api.iconify.design/tabler:photo.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Screenshots
 
-Bison images are available on GitHub Container Registry:
+| Dashboard | Teams & budgets | Billing config |
+|---|---|---|
+| ![Dashboard](docs/images/ui-dashboard.png) | ![Team management](docs/images/ui-team.png) | ![Billing configuration](docs/images/ui-billing.png) |
 
-```bash
-# Pull images
-docker pull ghcr.io/supermarioyl/bison/api-server:0.0.1
-docker pull ghcr.io/supermarioyl/bison/web-ui:0.0.1
+Real-time cluster overview with 7-day cost trends · per-team balance with colour-coded status (healthy / warning / suspended) · per-resource pricing and alert thresholds.
 
-# Or use latest
-docker pull ghcr.io/supermarioyl/bison/api-server:latest
-docker pull ghcr.io/supermarioyl/bison/web-ui:latest
-```
+## <img src="https://api.iconify.design/tabler:adjustments.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Configuration
 
-**Available Tags:**
-- `0.0.1`, `3.0`, `3` - Semantic version tags
-- `latest` - Latest stable release
+Set via `--set` or a values file. Full reference: [`deploy/charts/bison/values.yaml`](deploy/charts/bison/values.yaml).
 
-**Supported Platforms:**
-- `linux/amd64`
-- `linux/arm64`
+| Parameter | Description | Default |
+|---|---|---|
+| `auth.enabled` | enable login authentication | `false` |
+| `auth.admin.username` | admin username | `admin` |
+| `apiServer.replicaCount` | API server replicas | `2` |
+| `webUI.replicaCount` | Web UI replicas | `2` |
+| `dependencies.opencost.apiUrl` | OpenCost API endpoint (port **9003**, not the UI port) | `http://opencost.opencost.svc.cluster.local:9003` |
+| `dependencies.prometheus.url` | Prometheus server URL | `http://prometheus-kube-prometheus-prometheus.monitoring:9090` |
+| `ingress.enabled` / `ingress.host` | expose via Ingress | `true` / `bison.example.com` |
+| `networkPolicy.enabled` | restrict cross-team pod traffic | `false` |
+| `apiServer.autoscaling` / `podDisruptionBudget` | HPA + PDB for the API server | disabled |
 
-### Helm Installation Methods
-
-Bison Helm charts are distributed via **GitHub Container Registry (GHCR)** using the OCI format, which is the modern standard for Helm 3.8+.
-
-**Requirements:**
-- Helm >= 3.8.0 (for OCI support)
-- Kubernetes >= 1.22
-
-#### Method 1: Install from GHCR (Recommended)
+## <img src="https://api.iconify.design/tabler:tools.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Development
 
 ```bash
-# Install specific version directly from GHCR
-helm install my-bison oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12
-
-# Or pull the chart first, then install
-helm pull oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12
-helm install my-bison bison-0.0.12.tgz
-
-# Customize installation
-helm install my-bison oci://ghcr.io/supermarioyl/charts/bison \
-  --version 0.0.12 \
-  --namespace bison-system \
-  --create-namespace \
-  --set dependencies.opencost.apiUrl=http://opencost.opencost.svc.cluster.local:9003 \
-  --set dependencies.opencost.enabled=true \
-  --set auth.enabled=true
+make install-deps   # Go modules + npm
+make dev            # API + Web UI (needs tmux) — or dev-api / dev-web
+make test           # all tests          (test-api / test-web)
+make lint           # go vet + eslint
+make build          # multi-arch Docker images
+make helm-lint      # validate the chart
 ```
 
-#### Method 2: Install from GitHub Releases
-
-```bash
-# Download chart from GitHub Releases
-wget https://github.com/SuperMarioYL/Bison/releases/download/v0.0.12/bison-0.0.12.tgz
-
-# Install from downloaded file
-helm install my-bison bison-0.0.12.tgz \
-  --namespace bison-system \
-  --create-namespace
+```
+api-server/   Go backend — cmd/ (entry + routes), internal/{handler,service,k8s,scheduler,middleware}
+web-ui/       React + TS + Vite — src/{pages,components,services,contexts,hooks}
+deploy/       Helm chart (deploy/charts/bison)
+docs/         Architecture & guides — see https://bison.lei6393.com
 ```
 
-**Why GHCR OCI Format?**
-- ✅ No need for separate Helm repository maintenance
-- ✅ Unified image and chart management in GHCR
-- ✅ Faster installation (direct pull from registry)
-- ✅ Better version control and immutability
-- ✅ Standard practice for Helm 3.8+
+## <img src="https://api.iconify.design/tabler:map-2.svg?color=%230071E3&width=24" height="22" align="absmiddle" alt=""> Roadmap
 
-## Development
-
-```bash
-# Install dependencies
-make install-deps
-
-# Run locally
-make dev          # API + Web UI (requires tmux)
-make dev-api      # API server only
-make dev-web      # Web UI only
-
-# Build
-make build        # Docker images
-make build-binary # Binary files
-
-# Test
-make test
-make lint
-```
-
-### Release Process
-
-Bison uses automated GitHub Actions for releases:
-
-1. **Create a Git tag** to trigger release:
-   ```bash
-   git tag v3.1.0
-   git push origin v3.1.0
-   ```
-
-2. **GitHub Actions automatically**:
-   - Builds multi-platform Docker images (amd64, arm64)
-   - Pushes images to GitHub Container Registry
-   - Packages Helm chart
-   - Publishes chart to GHCR (OCI format)
-   - Creates GitHub Release with chart attachment
-
-3. **Verify release**:
-   - Check [GitHub Releases](https://github.com/SuperMarioYL/Bison/releases)
-   - Pull new images: `docker pull ghcr.io/supermarioyl/bison/api-server:0.0.12`
-   - Install chart: `helm install test oci://ghcr.io/supermarioyl/charts/bison --version 0.0.12`
-
-## Project Structure
-
-```
-bison/
-├── api-server/           # Go backend (Gin framework)
-│   ├── cmd/              # Entry point
-│   ├── internal/
-│   │   ├── handler/      # HTTP handlers
-│   │   ├── service/      # Business logic
-│   │   ├── k8s/          # Kubernetes client
-│   │   └── scheduler/    # Background tasks
-│   └── Dockerfile
-├── web-ui/               # React frontend
-│   ├── src/
-│   │   ├── pages/        # Page components
-│   │   ├── services/     # API clients
-│   │   └── contexts/     # React contexts
-│   └── Dockerfile
-├── deploy/
-│   └── charts/bison/     # Helm chart
-├── docs/                 # Documentation
-└── Makefile
-```
-
-## Roadmap
-
+- [x] Multi-tenant teams, prepaid wallets, hourly usage-based billing
+- [x] Auto-recharge, multi-channel balance alerts, idempotent auto-suspend
+- [x] Leader election, CORS & auth startup checks, autoscaling / PDB / NetworkPolicy knobs
 - [ ] Kubernetes Events integration
 - [ ] Grafana dashboard templates
-- [ ] Cost forecasting
-- [ ] Budget alerts
+- [ ] Cost forecasting & budget projections
+- [ ] Fine-grained RBAC permissions
 - [ ] API rate limiting
-- [ ] RBAC fine-grained permissions
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-<p align="center">
-  <strong>Bison</strong> - Simplify GPU Resource Management
-</p>
+<p align="center"><sub><a href="./LICENSE">MIT</a> © 2025 supermario_yl · <a href="https://bison.lei6393.com">docs</a></sub></p>
